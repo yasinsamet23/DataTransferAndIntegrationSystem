@@ -13,3 +13,4 @@ C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransfer
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Application\obj\Debug\net8.0\refint\DataTransferAndIntegrationSystem.Application.dll
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Application\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Application.pdb
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Application\obj\Debug\net8.0\ref\DataTransferAndIntegrationSystem.Application.dll
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Application\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Application.sourcelink.json

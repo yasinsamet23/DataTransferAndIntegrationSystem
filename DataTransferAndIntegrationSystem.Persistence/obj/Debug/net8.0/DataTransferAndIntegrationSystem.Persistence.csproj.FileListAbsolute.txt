@@ -15,3 +15,4 @@ C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransfer
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Persistence\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Persistence.pdb
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Persistence\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Persistence.genruntimeconfig.cache
 C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Persistence\obj\Debug\net8.0\ref\DataTransferAndIntegrationSystem.Persistence.dll
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Persistence\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Persistence.sourcelink.json
