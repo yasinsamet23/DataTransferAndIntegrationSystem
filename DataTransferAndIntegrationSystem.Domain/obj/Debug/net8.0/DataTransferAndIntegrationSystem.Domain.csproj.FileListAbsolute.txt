@@ -1,0 +1,11 @@
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\bin\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.deps.json
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\bin\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.dll
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\bin\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.pdb
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.AssemblyInfoInputs.cache
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.AssemblyInfo.cs
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.csproj.CoreCompileInputs.cache
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.dll
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\refint\DataTransferAndIntegrationSystem.Domain.dll
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\DataTransferAndIntegrationSystem.Domain.pdb
+C:\Users\yasin\OneDrive\Masaüstü\DataTransferAndIntegrationSystem\DataTransferAndIntegrationSystem.Domain\obj\Debug\net8.0\ref\DataTransferAndIntegrationSystem.Domain.dll
