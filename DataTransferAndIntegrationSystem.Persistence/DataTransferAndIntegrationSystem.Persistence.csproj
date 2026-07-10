@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataTransferAndIntegrationSystem.Domain\DataTransferAndIntegrationSystem.Domain.csproj" />
+    <ProjectReference Include="..\DataTransferAndIntegrationSystem.Application\DataTransferAndIntegrationSystem.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

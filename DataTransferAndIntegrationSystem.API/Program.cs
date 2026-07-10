@@ -1,6 +1,7 @@
 using DataTransferAndIntegrationSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
-
+using DataTransferAndIntegrationSystem.Application.Interfaces;
+using DataTransferAndIntegrationSystem.Persistence.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +12,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
