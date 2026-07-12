@@ -1,6 +1,7 @@
 using DataTransferAndIntegrationSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using DataTransferAndIntegrationSystem.Application.Interfaces;
+using DataTransferAndIntegrationSystem.Application.Services;
 using DataTransferAndIntegrationSystem.Persistence.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
