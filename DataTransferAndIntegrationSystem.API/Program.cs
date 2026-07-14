@@ -18,6 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<ITransferLogRepository, TransferLogRepository>();
+builder.Services.AddScoped<ITransferLogService, TransferLogService>();
 
 builder.Services.AddHttpClient();
 

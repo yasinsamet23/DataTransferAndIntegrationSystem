@@ -8,14 +8,19 @@ namespace DataTransferAndIntegrationSystem.Application.Services;
 
 public class TransferService : ITransferService
 {
+    private readonly IUserRepository _userRepository;
     private readonly HttpClient _httpClient;
+    private readonly ITransferLogService _transferLogService;
+    
 
     public TransferService(
-        IUserRepository userRepository,
-        HttpClient httpClient)
+    IUserRepository userRepository,
+    HttpClient httpClient,
+    ITransferLogService transferLogService)
     {
         _userRepository = userRepository;
         _httpClient = httpClient;
+        _transferLogService = transferLogService;
     }
 
     public async Task<TransferResultDto> StartTransferAsync()
@@ -98,12 +103,38 @@ public class TransferService : ITransferService
 
         await _userRepository.SaveChangesAsync();
 
+        string status;
+
+        if (failedCount == 0)
+        {
+            status = "Completed";
+        }
+        else if (successCount == 0)
+        {
+            status = "Failed";
+        }
+        else
+        {
+            status = "Completed With Errors";
+        }
+        
+        await _transferLogService.AddTransferLogAsync(
+        new TransferLogDto
+        {
+            TransferDate = DateTime.UtcNow,
+            TotalRecords = externalUsers.Users.Count,
+            SuccessCount = successCount,
+            Status = status
+        });
+
         return new TransferResultDto
         {
             TotalRecords = externalUsers.Users.Count,
             SuccessfulRecords = successCount,
             FailedRecords = failedCount,
-            Message = "Transfer completed successfully."
+            Message = successCount == 0
+            ? "No new users were transferred."
+            : "Transfer completed successfully."
         };
     }
 }
