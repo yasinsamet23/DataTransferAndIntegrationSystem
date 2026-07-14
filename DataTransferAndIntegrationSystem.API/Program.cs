@@ -18,6 +18,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
+
+builder.Services.AddHttpClient();
+
 builder.Services.AddControllers();
 
 var app = builder.Build();

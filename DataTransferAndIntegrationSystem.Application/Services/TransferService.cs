@@ -1,43 +1,76 @@
+using System.Text.Json;
 using DataTransferAndIntegrationSystem.Application.DTOs;
 using DataTransferAndIntegrationSystem.Application.Interfaces;
+using DataTransferAndIntegrationSystem.Domain.Entities;
+using System.Text.RegularExpressions;
 
 namespace DataTransferAndIntegrationSystem.Application.Services;
 
 public class TransferService : ITransferService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly HttpClient _httpClient;
 
-    public TransferService(IUserRepository userRepository)
+    public TransferService(
+        IUserRepository userRepository,
+        HttpClient httpClient)
     {
         _userRepository = userRepository;
+        _httpClient = httpClient;
     }
 
     public async Task<TransferResultDto> StartTransferAsync()
     {
-        // Şimdilik örnek veri oluşturuyoruz.
-        // Daha sonra bunu Mock REST API'den okuyacağız.
+        var response = await _httpClient.GetAsync("https://dummyjson.com/users");
 
-        var externalUsers = new List<ExternalUserDto>
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        var options = new JsonSerializerOptions
         {
-            new ExternalUserDto
-            {
-                Name = "Ali",
-                Email = "ali@test.com",
-                Phone = "5551111111"
-            },
-            new ExternalUserDto
-            {
-                Name = "Veli",
-                Email = "veli@test.com",
-                Phone = "5552222222"
-            }
+            PropertyNameCaseInsensitive = true
         };
+
+        var externalUsers =
+            JsonSerializer.Deserialize<ExternalUsersResponseDto>(json, options);
+
+        if (externalUsers == null)
+        {
+            throw new Exception("Users could not be retrieved from the external API.");
+        }
 
         int successCount = 0;
         int failedCount = 0;
 
-        foreach (var externalUser in externalUsers)
+        var processedEmails = new HashSet<string>();
+
+        foreach (var externalUser in externalUsers.Users)
         {
+            if (string.IsNullOrWhiteSpace(externalUser.FirstName))
+            {
+                failedCount++;
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(externalUser.Email))
+            {
+                failedCount++;
+                continue;
+            }
+            
+            if (!Regex.IsMatch(
+        externalUser.Email,
+        @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                failedCount++;
+                continue;
+            }
+
+            if (processedEmails.Contains(externalUser.Email))
+            {
+                failedCount++;
+                continue;
+            }                
             var existingUser =
                 await _userRepository.GetByEmailAsync(externalUser.Email);
 
@@ -47,15 +80,17 @@ public class TransferService : ITransferService
                 continue;
             }
 
-            var user = new Domain.Entities.User
+            var user = new User
             {
                 Id = Guid.NewGuid(),
-                Name = externalUser.Name,
+                Name = $"{externalUser.FirstName} {externalUser.LastName}",
                 Email = externalUser.Email,
                 Phone = externalUser.Phone,
                 CreatedDate = DateTime.UtcNow
             };
 
+            processedEmails.Add(externalUser.Email);
+            
             await _userRepository.AddAsync(user);
 
             successCount++;
@@ -65,7 +100,7 @@ public class TransferService : ITransferService
 
         return new TransferResultDto
         {
-            TotalRecords = externalUsers.Count,
+            TotalRecords = externalUsers.Users.Count,
             SuccessfulRecords = successCount,
             FailedRecords = failedCount,
             Message = "Transfer completed successfully."
