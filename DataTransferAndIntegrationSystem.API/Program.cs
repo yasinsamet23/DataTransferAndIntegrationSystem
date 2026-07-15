@@ -20,6 +20,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferLogRepository, TransferLogRepository>();
 builder.Services.AddScoped<ITransferLogService, TransferLogService>();
+builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
+builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
 
 builder.Services.AddHttpClient();
 

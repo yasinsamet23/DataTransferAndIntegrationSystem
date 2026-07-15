@@ -11,16 +11,19 @@ public class TransferService : ITransferService
     private readonly IUserRepository _userRepository;
     private readonly HttpClient _httpClient;
     private readonly ITransferLogService _transferLogService;
+    private readonly IErrorLogService _errorLogService;
     
 
     public TransferService(
     IUserRepository userRepository,
     HttpClient httpClient,
-    ITransferLogService transferLogService)
+    ITransferLogService transferLogService,
+    IErrorLogService errorLogService)
     {
         _userRepository = userRepository;
         _httpClient = httpClient;
         _transferLogService = transferLogService;
+        _errorLogService = errorLogService;
     }
 
     public async Task<TransferResultDto> StartTransferAsync()
@@ -48,39 +51,93 @@ public class TransferService : ITransferService
         int failedCount = 0;
 
         var processedEmails = new HashSet<string>();
+        // TEST PURPOSE ONLY
+        // Name boş
+        externalUsers.Users[0].FirstName = "   ";
 
+        // Email boş
+        externalUsers.Users[1].Email = null;
+
+        // Regex
+        externalUsers.Users[2].Email = "yasinsamet@gmailcom";
+
+        // Duplicate
+        externalUsers.Users[10].Email = externalUsers.Users[9].Email;
         foreach (var externalUser in externalUsers.Users)
         {
+            
+            
             if (string.IsNullOrWhiteSpace(externalUser.FirstName))
             {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        RecordId = Guid.NewGuid(),
+                        ErrorField = "FirstName",
+                        ErrorMessage = "First name is required."
+                    });
+
                 failedCount++;
                 continue;
             }
+            
 
             if (string.IsNullOrWhiteSpace(externalUser.Email))
             {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        RecordId = Guid.NewGuid(),
+                        ErrorField = "Email",
+                        ErrorMessage = "Email is required."
+                    });
+
                 failedCount++;
                 continue;
             }
             
             if (!Regex.IsMatch(
-        externalUser.Email,
-        @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+    externalUser.Email,
+    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        RecordId = Guid.NewGuid(),
+                        ErrorField = "Email",
+                        ErrorMessage = "Invalid email format."
+                    });
+
                 failedCount++;
                 continue;
             }
 
             if (processedEmails.Contains(externalUser.Email))
             {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        RecordId = Guid.NewGuid(),
+                        ErrorField = "Email",
+                        ErrorMessage = "Duplicate email in transfer package."
+                    });
+
                 failedCount++;
                 continue;
-            }                
+            }              
             var existingUser =
                 await _userRepository.GetByEmailAsync(externalUser.Email);
 
             if (existingUser != null)
             {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        RecordId = existingUser.Id,
+                        ErrorField = "Email",
+                        ErrorMessage = "User already exists."
+                    });
+
                 failedCount++;
                 continue;
             }
