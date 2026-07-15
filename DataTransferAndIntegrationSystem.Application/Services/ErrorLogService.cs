@@ -19,9 +19,11 @@ public class ErrorLogService : IErrorLogService
 
         return errorLogs.Select(error => new ErrorLogDto
         {
+            Id = error.Id,
             RecordId = error.RecordId,
             ErrorField = error.ErrorField,
-            ErrorMessage = error.ErrorMessage
+            ErrorMessage = error.ErrorMessage,
+            CreatedDate = error.CreatedDate
         }).ToList();
     }
 

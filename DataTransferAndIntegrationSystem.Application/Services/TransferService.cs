@@ -51,18 +51,7 @@ public class TransferService : ITransferService
         int failedCount = 0;
 
         var processedEmails = new HashSet<string>();
-        // TEST PURPOSE ONLY
-        // Name boş
-        externalUsers.Users[0].FirstName = "   ";
-
-        // Email boş
-        externalUsers.Users[1].Email = null;
-
-        // Regex
-        externalUsers.Users[2].Email = "yasinsamet@gmailcom";
-
-        // Duplicate
-        externalUsers.Users[10].Email = externalUsers.Users[9].Email;
+        
         foreach (var externalUser in externalUsers.Users)
         {
             

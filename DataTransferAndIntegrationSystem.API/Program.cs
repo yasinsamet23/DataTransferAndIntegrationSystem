@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using DataTransferAndIntegrationSystem.Application.Interfaces;
 using DataTransferAndIntegrationSystem.Application.Services;
 using DataTransferAndIntegrationSystem.Persistence.Repositories;
+using DataTransferAndIntegrationSystem.API.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -35,7 +36,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.MapControllers();
 
