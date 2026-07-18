@@ -52,6 +52,8 @@ public class TransferService : ITransferService
 
         var processedEmails = new HashSet<string>();
         
+        externalUsers.Users[0].Email = "asfdsdf@gmail.com";
+        externalUsers.Users[1].Email = "oasdxczv@gmail.com"; 
         foreach (var externalUser in externalUsers.Users)
         {
             
@@ -150,18 +152,22 @@ public class TransferService : ITransferService
         await _userRepository.SaveChangesAsync();
 
         string status;
+        string message;
 
         if (failedCount == 0)
         {
             status = "Completed";
+            message = "Transfer completed successfully.";
         }
         else if (successCount == 0)
         {
             status = "Failed";
+            message = "Transfer failed. No users were transferred.";
         }
         else
         {
             status = "Completed With Errors";
+            message = "Transfer completed with errors.";
         }
         
         await _transferLogService.AddTransferLogAsync(
@@ -178,9 +184,7 @@ public class TransferService : ITransferService
             TotalRecords = externalUsers.Users.Count,
             SuccessfulRecords = successCount,
             FailedRecords = failedCount,
-            Message = successCount == 0
-            ? "No new users were transferred."
-            : "Transfer completed successfully."
+            Message = message
         };
     }
 }

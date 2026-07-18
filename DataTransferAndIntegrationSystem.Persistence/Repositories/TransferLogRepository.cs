@@ -15,7 +15,9 @@ public class TransferLogRepository : ITransferLogRepository
 
     public async Task<List<TransferLog>> GetAllAsync()
     {
-        return await _context.TransferLogs.ToListAsync();
+        return await _context.TransferLogs
+            .OrderByDescending(x => x.TransferDate)
+            .ToListAsync();
     }
 
     public async Task AddAsync(TransferLog transferLog)

@@ -2,34 +2,99 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import SummaryCard from "../components/SummaryCard";
 
+
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [transferLogs, setTransferLogs] = useState([]);
 
+  const totalSuccessful = transferLogs.reduce(
+    (total, log) => total + log.successCount,
+    0
+  );
+
+  const totalFailed = transferLogs.reduce(
+    (total, log) => total + (log.totalRecords - log.successCount),
+    0
+  );
+
+  const totalRecords = transferLogs.reduce(
+    (total, log) => total + log.totalRecords,
+    0
+  );
+
+  const errorRate =
+    totalRecords > 0
+      ? ((totalFailed / totalRecords) * 100).toFixed(1)
+      : 0;
+
   useEffect(() => {
 
-      loadUsers();
+    loadUsers();
+
+    loadTransferLogs();
 
   }, []);
 
 
   const loadUsers = async () => {
 
-      try {
+    try {
 
-          const response = await api.get("/users");
+      const response = await api.get("/users");
 
-          setUsers(response.data);
+      setUsers(response.data);
 
-      }
+    }
 
-      catch (error) {
+    catch (error) {
 
-          console.error(error);
+      console.error(error);
 
-      }
+    }
 
   };
+
+  const loadTransferLogs = async () => {
+
+    try {
+
+      const response = await api.get("/logs");
+
+      setTransferLogs(response.data);
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+    }
+
+  };
+
+  const startTransfer = async () => {
+
+    try {
+
+      const response = await api.post("/transfer/start");
+
+      alert(response.data.message);
+
+      loadUsers();
+
+      loadTransferLogs();
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      alert("Transfer failed.");
+
+    }
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-2">
@@ -49,20 +114,20 @@ function Dashboard() {
         />
 
         <SummaryCard
-          title="Total Users"
-          value={users.length}
-          color="bg-blue-100"
+          title="Successful Transfers"
+          value={totalSuccessful}
+          color="bg-green-100"
         />
 
         <SummaryCard
           title="Failed Records"
-          value="0"
+          value={totalFailed}
           color="bg-red-100"
         />
 
         <SummaryCard
           title="Error Rate"
-          value="%0"
+          value={`${errorRate}%`}
           color="bg-yellow-100"
         />
       </div>
@@ -79,7 +144,10 @@ function Dashboard() {
           </p>
         </div>
 
-        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+        <button
+          onClick={startTransfer}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 cursor-pointer"
+        >
           Start Transfer
         </button>
       </div>
@@ -97,7 +165,7 @@ function Dashboard() {
             </p>
           </div>
 
-          <button className="text-blue-600 font-semibold hover:underline">
+          <button className="text-blue-600 font-semibold hover:underline transition duration-200 cursor-pointer">
             View All
           </button>
         </div>
@@ -111,41 +179,47 @@ function Dashboard() {
               <th className="text-left p-4">Status</th>
             </tr>
           </thead>
-
           <tbody>
-            <tr className="border-t">
-              <td className="p-4">16 Jul 2026 - 09:42</td>
-              <td className="p-4">30</td>
-              <td className="p-4">26</td>
-              <td className="p-4">
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                  Completed
-                </span>
-              </td>
-            </tr>
+            {
+              transferLogs.map((log) => (
 
-            <tr className="border-t">
-              <td className="p-4">16 Jul 2026 - 08:15</td>
-              <td className="p-4">30</td>
-              <td className="p-4">24</td>
-              <td className="p-4">
-                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-                  Completed With Errors
-                </span>
-              </td>
-            </tr>
+                <tr
+                  key={log.id}
+                  className="border-t"
+                >
 
-            <tr className="border-t">
-              <td className="p-4">15 Jul 2026 - 17:33</td>
-              <td className="p-4">30</td>
-              <td className="p-4">0</td>
-              <td className="p-4">
-                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                  Failed
-                </span>
-              </td>
-            </tr>
+                  <td className="p-4">
+                    {
+                      new Date(log.transferDate)
+                        .toLocaleString()
+                    }
+                  </td>
+
+                  <td className="p-4">
+                    {log.totalRecords}
+                  </td>
+
+                  <td className="p-4">
+                    {log.successCount}
+                  </td>
+
+                  <td className="p-4">
+
+                    <span
+                      className="bg-green-100 text-green-700 px-3 py-1 rounded-full"
+                    >
+                      {log.status}
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              ))
+            }
           </tbody>
+
+
         </table>
       </div>
     </div>
