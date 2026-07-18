@@ -1,127 +1,126 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import StatusBadge from "../components/StatusBadge";
 
 function TransferLogs() {
 
-    const [transferLogs, setTransferLogs] = useState([]);
+  const [transferLogs, setTransferLogs] = useState([]);
 
-    useEffect(() => {
+  useEffect(() => {
 
-        loadTransferLogs();
+    loadTransferLogs();
 
-    }, []);
+  }, []);
 
-    const loadTransferLogs = async () => {
+  const loadTransferLogs = async () => {
 
-        try {
+    try {
 
-            const response = await api.get("/logs");
+      const response = await api.get("/logs");
 
-            setTransferLogs(response.data);
+      setTransferLogs(response.data);
 
-        }
+    }
 
-        catch (error) {
+    catch (error) {
 
-            console.error(error);
+      console.error(error);
 
-        }
+    }
 
-    };
+  };
 
-    return (
+  return (
 
-        <div>
+    <div>
 
-            <h1 className="text-3xl font-bold mb-2">
-                Transfer Logs
-            </h1>
+      <h1 className="text-3xl font-bold mb-2">
+        Transfer Logs
+      </h1>
 
-            <p className="text-gray-500 mb-8">
-                History of all transfer operations.
-            </p>
+      <p className="text-gray-500 mb-8">
+        History of all transfer operations.
+      </p>
 
-            <div className="bg-white rounded-xl shadow-md border overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md border overflow-hidden">
 
-                <table className="w-full">
+        <table className="w-full">
 
-                    <thead className="bg-gray-100">
+          <thead className="bg-gray-100">
 
-                        <tr>
+            <tr>
 
-                            <th className="text-left p-4">
-                                Transfer Date
-                            </th>
+              <th className="text-left p-4">
+                Transfer Date
+              </th>
 
-                            <th className="text-left p-4">
-                                Total Records
-                            </th>
+              <th className="text-left p-4">
+                Total Records
+              </th>
 
-                            <th className="text-left p-4">
-                                Success Count
-                            </th>
+              <th className="text-left p-4">
+                Success Count
+              </th>
 
-                            <th className="text-left p-4">
-                                Status
-                            </th>
+              <th className="text-left p-4">
+                Status
+              </th>
 
-                        </tr>
+            </tr>
 
-                    </thead>
+          </thead>
 
-                    <tbody>
+          <tbody>
 
-                        {
+            {
 
-                            transferLogs.map(log => (
+              transferLogs.map(log => (
 
-                                <tr
-                                    key={log.id}
-                                    className="border-t hover:bg-gray-50"
-                                >
+                <tr
+                  key={log.id}
+                  className="border-t hover:bg-gray-50"
+                >
 
-                                    <td className="p-4">
+                  <td className="p-4">
 
-                                        {
-                                            new Date(log.transferDate)
-                                                .toLocaleString()
-                                        }
+                    {
+                      new Date(log.transferDate)
+                        .toLocaleString()
+                    }
 
-                                    </td>
+                  </td>
 
-                                    <td className="p-4">
-                                        {log.totalRecords}
-                                    </td>
+                  <td className="p-4">
+                    {log.totalRecords}
+                  </td>
 
-                                    <td className="p-4">
-                                        {log.successCount}
-                                    </td>
+                  <td className="p-4">
+                    {log.successCount}
+                  </td>
 
-                                    <td className="p-4">
+                  <td className="p-4">
 
-                                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                    <StatusBadge
+                      status={log.status}
+                    />
 
-                                            {log.status}
+                  </td>
 
-                                        </span>
+                </tr>
 
-                                    </td>
+              ))
 
-                                </tr>
+            }
 
-                            ))
+          </tbody>
 
-                        }
+        </table>
 
-                    </tbody>
+      </div>
 
-                </table>
+    </div>
 
-            </div>
-
-        </div>
-
-    );
+  );
 
 }
 

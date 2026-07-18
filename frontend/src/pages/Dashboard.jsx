@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import SummaryCard from "../components/SummaryCard";
+import StatusBadge from "../components/StatusBadge";
 
 
 function Dashboard() {
@@ -211,11 +212,9 @@ function Dashboard() {
 
                     <td className="p-4">
 
-                      <span
-                        className="bg-green-100 text-green-700 px-3 py-1 rounded-full"
-                      >
-                        {log.status}
-                      </span>
+                      <StatusBadge
+                        status={log.status}
+                      />
 
                     </td>
 
