@@ -15,7 +15,9 @@ public class UserRepository : IUserRepository
 
     public async Task<List<User>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users
+            .OrderByDescending(x => x.CreatedDate)
+            .ToListAsync();
     }
 
     public async Task<User?> GetByIdAsync(Guid id)
