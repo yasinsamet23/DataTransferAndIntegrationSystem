@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../services/api";
 import SummaryCard from "../components/SummaryCard";
 
@@ -165,9 +166,12 @@ function Dashboard() {
             </p>
           </div>
 
-          <button className="text-blue-600 font-semibold hover:underline transition duration-200 cursor-pointer">
+          <Link
+            to="/transfer-logs"
+            className="text-blue-600 font-semibold hover:underline cursor-pointer"
+          >
             View All
-          </button>
+          </Link>
         </div>
 
         <table className="w-full">
@@ -181,41 +185,43 @@ function Dashboard() {
           </thead>
           <tbody>
             {
-              transferLogs.map((log) => (
+              transferLogs
+                .slice(0, 5)
+                .map((log) => (
 
-                <tr
-                  key={log.id}
-                  className="border-t"
-                >
+                  <tr
+                    key={log.id}
+                    className="border-t"
+                  >
 
-                  <td className="p-4">
-                    {
-                      new Date(log.transferDate)
-                        .toLocaleString()
-                    }
-                  </td>
+                    <td className="p-4">
+                      {
+                        new Date(log.transferDate)
+                          .toLocaleString()
+                      }
+                    </td>
 
-                  <td className="p-4">
-                    {log.totalRecords}
-                  </td>
+                    <td className="p-4">
+                      {log.totalRecords}
+                    </td>
 
-                  <td className="p-4">
-                    {log.successCount}
-                  </td>
+                    <td className="p-4">
+                      {log.successCount}
+                    </td>
 
-                  <td className="p-4">
+                    <td className="p-4">
 
-                    <span
-                      className="bg-green-100 text-green-700 px-3 py-1 rounded-full"
-                    >
-                      {log.status}
-                    </span>
+                      <span
+                        className="bg-green-100 text-green-700 px-3 py-1 rounded-full"
+                      >
+                        {log.status}
+                      </span>
 
-                  </td>
+                    </td>
 
-                </tr>
+                  </tr>
 
-              ))
+                ))
             }
           </tbody>
 
