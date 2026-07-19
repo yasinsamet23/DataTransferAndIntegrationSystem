@@ -7,4 +7,5 @@ public interface ITransferLogService
     Task<List<TransferLogDto>> GetAllTransferLogsAsync();
 
     Task AddTransferLogAsync(TransferLogDto transferLogDto);
+    Task UpdateTransferLogAsync(TransferLogDto transferLogDto);
 }

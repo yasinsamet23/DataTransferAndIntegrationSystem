@@ -31,7 +31,7 @@ public class TransferLogService : ITransferLogService
     {
         var transferLog = new TransferLog
         {
-            Id = Guid.NewGuid(),
+            Id = transferLogDto.Id,
             TransferDate = transferLogDto.TransferDate,
             TotalRecords = transferLogDto.TotalRecords,
             SuccessCount = transferLogDto.SuccessCount,
@@ -39,6 +39,22 @@ public class TransferLogService : ITransferLogService
         };
 
         await _transferLogRepository.AddAsync(transferLog);
+
+        await _transferLogRepository.SaveChangesAsync();
+    }
+
+    public async Task UpdateTransferLogAsync(TransferLogDto transferLogDto)
+    {
+        var transferLog =
+            await _transferLogRepository.GetByIdAsync(transferLogDto.Id);
+
+        if (transferLog == null)
+            throw new Exception("Transfer log not found.");
+
+        transferLog.TransferDate = transferLogDto.TransferDate;
+        transferLog.TotalRecords = transferLogDto.TotalRecords;
+        transferLog.SuccessCount = transferLogDto.SuccessCount;
+        transferLog.Status = transferLogDto.Status;
 
         await _transferLogRepository.SaveChangesAsync();
     }

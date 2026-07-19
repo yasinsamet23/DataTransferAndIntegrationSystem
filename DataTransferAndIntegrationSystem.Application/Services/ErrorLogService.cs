@@ -20,6 +20,7 @@ public class ErrorLogService : IErrorLogService
         return errorLogs.Select(error => new ErrorLogDto
         {
             Id = error.Id,
+            TransferLogId = error.TransferLogId,
             RecordId = error.RecordId,
             ErrorField = error.ErrorField,
             ErrorMessage = error.ErrorMessage,
@@ -32,6 +33,7 @@ public class ErrorLogService : IErrorLogService
         var errorLog = new ErrorLog
         {
             Id = Guid.NewGuid(),
+            TransferLogId = errorLogDto.TransferLogId,
             RecordId = errorLogDto.RecordId,
             ErrorField = errorLogDto.ErrorField,
             ErrorMessage = errorLogDto.ErrorMessage,

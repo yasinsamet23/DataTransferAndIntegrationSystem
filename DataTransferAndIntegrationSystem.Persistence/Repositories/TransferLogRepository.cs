@@ -29,4 +29,10 @@ public class TransferLogRepository : ITransferLogRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    public async Task<TransferLog?> GetByIdAsync(Guid id)
+    {
+        return await _context.TransferLogs
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
 }

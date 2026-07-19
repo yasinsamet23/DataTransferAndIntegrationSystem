@@ -12,7 +12,7 @@ public class TransferService : ITransferService
     private readonly HttpClient _httpClient;
     private readonly ITransferLogService _transferLogService;
     private readonly IErrorLogService _errorLogService;
-    
+
 
     public TransferService(
     IUserRepository userRepository,
@@ -49,43 +49,64 @@ public class TransferService : ITransferService
 
         int successCount = 0;
         int failedCount = 0;
+        var transferLogId = Guid.NewGuid();
 
         var processedEmails = new HashSet<string>();
-        
-                
+
+        await _transferLogService.AddTransferLogAsync(
+    new TransferLogDto
+    {
+        Id = transferLogId,
+        TransferDate = DateTime.UtcNow,
+        TotalRecords = 0,
+        SuccessCount = 0,
+        Status = "Running"
+    });
+
+        externalUsers.Users[0].FirstName = "";
+        externalUsers.Users[1].Email = "";
+        externalUsers.Users[2].Email = "@@example.com";
+        externalUsers.Users[3].Email = "goodexample234@gmail.com";
+        externalUsers.Users[4].Email = "goodexample234@gmail.com";
+        externalUsers.Users[5].Email = "lily.lee@x.dummyjson.com";
+
+
+
         foreach (var externalUser in externalUsers.Users)
         {
-            
-            
+
+
             if (string.IsNullOrWhiteSpace(externalUser.FirstName))
             {
                 await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        RecordId = Guid.NewGuid(),
-                        ErrorField = "FirstName",
-                        ErrorMessage = "First name is required."
-                    });
+    new ErrorLogDto
+    {
+        TransferLogId = transferLogId,
+        RecordId = Guid.NewGuid(),
+        ErrorField = "FirstName",
+        ErrorMessage = "First name is required."
+    });
 
                 failedCount++;
                 continue;
             }
-            
+
 
             if (string.IsNullOrWhiteSpace(externalUser.Email))
             {
                 await _errorLogService.AddErrorAsync(
                     new ErrorLogDto
                     {
+                        TransferLogId = transferLogId,
                         RecordId = Guid.NewGuid(),
                         ErrorField = "Email",
                         ErrorMessage = "Email is required."
                     });
-
+ 
                 failedCount++;
                 continue;
             }
-            
+
             if (!Regex.IsMatch(
     externalUser.Email,
     @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
@@ -93,6 +114,7 @@ public class TransferService : ITransferService
                 await _errorLogService.AddErrorAsync(
                     new ErrorLogDto
                     {
+                        TransferLogId = transferLogId,
                         RecordId = Guid.NewGuid(),
                         ErrorField = "Email",
                         ErrorMessage = "Invalid email format."
@@ -107,6 +129,7 @@ public class TransferService : ITransferService
                 await _errorLogService.AddErrorAsync(
                     new ErrorLogDto
                     {
+                        TransferLogId = transferLogId,
                         RecordId = Guid.NewGuid(),
                         ErrorField = "Email",
                         ErrorMessage = "Duplicate email in transfer package."
@@ -114,7 +137,7 @@ public class TransferService : ITransferService
 
                 failedCount++;
                 continue;
-            }              
+            }
             var existingUser =
                 await _userRepository.GetByEmailAsync(externalUser.Email);
 
@@ -123,6 +146,7 @@ public class TransferService : ITransferService
                 await _errorLogService.AddErrorAsync(
                     new ErrorLogDto
                     {
+                        TransferLogId = transferLogId,
                         RecordId = existingUser.Id,
                         ErrorField = "Email",
                         ErrorMessage = "User already exists."
@@ -142,7 +166,7 @@ public class TransferService : ITransferService
             };
 
             processedEmails.Add(externalUser.Email);
-            
+
             await _userRepository.AddAsync(user);
 
             successCount++;
@@ -168,15 +192,16 @@ public class TransferService : ITransferService
             status = "Completed With Errors";
             message = "Transfer completed with errors.";
         }
-        
-        await _transferLogService.AddTransferLogAsync(
-        new TransferLogDto
-        {
-            TransferDate = DateTime.UtcNow,
-            TotalRecords = externalUsers.Users.Count,
-            SuccessCount = successCount,
-            Status = status
-        });
+
+        await _transferLogService.UpdateTransferLogAsync(
+    new TransferLogDto
+    {
+        Id = transferLogId,
+        TransferDate = DateTime.UtcNow,
+        TotalRecords = externalUsers.Users.Count,
+        SuccessCount = successCount,
+        Status = status
+    });
 
         return new TransferResultDto
         {

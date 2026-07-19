@@ -9,4 +9,6 @@ public interface ITransferLogRepository
     Task AddAsync(TransferLog transferLog);
 
     Task SaveChangesAsync();
+
+    Task<TransferLog?> GetByIdAsync(Guid id);
 }

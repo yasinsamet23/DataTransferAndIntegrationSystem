@@ -6,22 +6,26 @@ namespace DataTransferAndIntegrationSystem.Persistence.Configurations;
 
 public class ErrorLogConfiguration : IEntityTypeConfiguration<ErrorLog>
 {
-    public void Configure(EntityTypeBuilder<ErrorLog> builder)
-    {
-        builder.HasKey(x => x.Id);
+       public void Configure(EntityTypeBuilder<ErrorLog> builder)
+       {
+              builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.RecordId)
-               .IsRequired();
+              builder.Property(x => x.RecordId)
+                     .IsRequired();
 
-        builder.Property(x => x.ErrorField)
-               .IsRequired()
-               .HasMaxLength(100);
+              builder.Property(x => x.ErrorField)
+                     .IsRequired()
+                     .HasMaxLength(100);
 
-        builder.Property(x => x.ErrorMessage)
-               .IsRequired()
-               .HasMaxLength(500);
+              builder.Property(x => x.ErrorMessage)
+                     .IsRequired()
+                     .HasMaxLength(500);
 
-        builder.Property(x => x.CreatedDate)
-               .IsRequired();
-    }
+              builder.Property(x => x.CreatedDate)
+                     .IsRequired();
+
+              builder.HasOne(x => x.TransferLog)
+                     .WithMany(x => x.ErrorLogs)
+                     .HasForeignKey(x => x.TransferLogId);
+       }
 }

@@ -11,4 +11,7 @@ public class TransferLog
     public int SuccessCount { get; set; }
 
     public string Status { get; set; } = string.Empty;
+
+     // Navigation Property
+    public ICollection<ErrorLog> ErrorLogs { get; set; } = new List<ErrorLog>();
 }

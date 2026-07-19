@@ -2,6 +2,8 @@ public class ErrorLogDto
 {
     public Guid Id { get; set; }
 
+    public Guid TransferLogId { get; set; }
+
     public Guid RecordId { get; set; }
 
     public string ErrorField { get; set; } = string.Empty;
