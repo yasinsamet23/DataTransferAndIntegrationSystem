@@ -8,6 +8,8 @@ import StatusBadge from "../components/StatusBadge";
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [transferLogs, setTransferLogs] = useState([]);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferStatus, setTransferStatus] = useState("");
 
   const totalSuccessful = transferLogs.reduce(
     (total, log) => total + log.successCount,
@@ -78,13 +80,17 @@ function Dashboard() {
 
     try {
 
-      const response = await api.post("/transfer/start");
+      setIsTransferring(true);
 
-      alert(response.data.message);
+      setTransferStatus("Transferring...");
+
+      const response = await api.post("/transfer/start");
 
       loadUsers();
 
       loadTransferLogs();
+
+      setTransferStatus(response.data.message);
 
     }
 
@@ -92,9 +98,16 @@ function Dashboard() {
 
       console.error(error);
 
-      alert("Transfer failed.");
+      setTransferStatus("Transfer failed.");
 
     }
+
+    finally {
+
+      setIsTransferring(false);
+
+    }
+
   };
 
   return (
@@ -146,12 +159,33 @@ function Dashboard() {
           </p>
         </div>
 
-        <button
-          onClick={startTransfer}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 cursor-pointer"
-        >
-          Start Transfer
-        </button>
+        <div className="flex flex-col items-end">
+
+          <button
+            onClick={startTransfer}
+            disabled={isTransferring}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 cursor-pointer disabled:bg-gray-400"
+          >
+            {
+              isTransferring
+                ? "Transferring..."
+                : "Start Transfer"
+            }
+          </button>
+
+          {
+            transferStatus && (
+
+              <p className="mt-2 text-sm text-gray-600">
+
+                {transferStatus}
+
+              </p>
+
+            )
+          }
+
+        </div>
       </div>
 
       {/* Recent Transfer Logs */}

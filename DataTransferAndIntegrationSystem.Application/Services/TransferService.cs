@@ -52,7 +52,7 @@ public class TransferService : ITransferService
 
         var processedEmails = new HashSet<string>();
         
-         
+                
         foreach (var externalUser in externalUsers.Users)
         {
             
