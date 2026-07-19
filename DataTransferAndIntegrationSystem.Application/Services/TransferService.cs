@@ -52,8 +52,7 @@ public class TransferService : ITransferService
 
         var processedEmails = new HashSet<string>();
         
-        externalUsers.Users[0].Email = "asfdsdf@gmail.com";
-        externalUsers.Users[1].Email = "oasdxczv@gmail.com"; 
+         
         foreach (var externalUser in externalUsers.Users)
         {
             

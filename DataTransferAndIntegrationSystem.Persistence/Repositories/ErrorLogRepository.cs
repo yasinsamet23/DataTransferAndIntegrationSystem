@@ -15,7 +15,9 @@ public class ErrorLogRepository : IErrorLogRepository
 
     public async Task<List<ErrorLog>> GetAllAsync()
     {
-        return await _context.ErrorLogs.ToListAsync();
+        return await _context.ErrorLogs
+            .OrderByDescending(x => x.CreatedDate)
+            .ToListAsync();
     }
 
     public async Task AddAsync(ErrorLog errorLog)
