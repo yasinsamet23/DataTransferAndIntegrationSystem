@@ -5,6 +5,27 @@ import StatusBadge from "../components/StatusBadge";
 function TransferLogs() {
 
   const [transferLogs, setTransferLogs] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const filteredLogs = transferLogs.filter(log => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      log.id.toLowerCase().includes(searchText) ||
+
+      new Date(log.transferDate)
+        .toLocaleString()
+        .toLowerCase()
+        .includes(searchText);
+
+    const matchesStatus =
+      statusFilter === "All" ||
+
+      log.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   useEffect(() => {
 
@@ -42,6 +63,53 @@ function TransferLogs() {
         History of all transfer operations.
       </p>
 
+      <div className="flex items-center gap-4 mb-6">
+
+        <input
+          type="text"
+          placeholder="Search by Transfer ID or Date"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="
+      w-[650px]
+      border
+      border-gray-300
+      rounded-lg
+      px-4
+      py-2
+      bg-white
+      focus:outline-none
+      focus:ring-2
+      focus:ring-blue-500
+    "
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="
+      w-52
+      border
+      border-gray-300
+      rounded-lg
+      px-4
+      py-2
+      bg-white
+      focus:outline-none
+      focus:ring-2
+      focus:ring-blue-500
+    "
+        >
+          <option value="All">All</option>
+          <option value="Completed">Completed</option>
+          <option value="Completed With Errors">
+            Completed With Errors
+          </option>
+          <option value="Failed">Failed</option>
+        </select>
+
+      </div>
+
       <div className="bg-white rounded-xl shadow-md border overflow-hidden">
 
         <table className="w-full">
@@ -77,7 +145,7 @@ function TransferLogs() {
 
             {
 
-              transferLogs.map(log => (
+              filteredLogs.map(log => (
 
                 <tr
                   key={log.id}

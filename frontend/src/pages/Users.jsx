@@ -4,6 +4,20 @@ import api from "../services/api";
 function Users() {
 
   const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const filteredUsers = users.filter(user => {
+    const searchText = search.toLowerCase();
+
+    return (
+      user.name.toLowerCase().includes(searchText) ||
+      user.email.toLowerCase().includes(searchText) ||
+      user.phone.toLowerCase().includes(searchText) ||
+      new Date(user.createdDate)
+        .toLocaleString()
+        .toLowerCase()
+        .includes(searchText)
+    );
+  });
 
   useEffect(() => {
 
@@ -39,7 +53,13 @@ function Users() {
       <p className="text-gray-500 mb-8">
         All transferred users.
       </p>
-
+      <input
+        type="text"
+        placeholder="Search by name, email, phone or created date"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="border rounded-lg px-4 py-2 mb-4 w-full"
+      />
       <div className="bg-white rounded-xl shadow-md border overflow-hidden">
 
         <table className="w-full">
@@ -71,7 +91,7 @@ function Users() {
           <tbody>
 
             {
-              users.map(user => (
+              filteredUsers.map(user => (
 
                 <tr
                   key={user.id}

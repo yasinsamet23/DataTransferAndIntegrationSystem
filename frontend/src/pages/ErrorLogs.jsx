@@ -4,6 +4,43 @@ import api from "../services/api";
 function ErrorLogs() {
 
   const [errors, setErrors] = useState([]);
+  const [search, setSearch] = useState("");
+  const filteredErrors = errors.filter(error => {
+    const searchText = search.toLowerCase();
+
+    return (
+
+      new Date(error.createdDate)
+        .toLocaleString()
+        .toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      error.transferLogId
+        .toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      error.recordId
+        .toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      error.errorField
+        .toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      error.errorMessage
+        .toLowerCase()
+        .includes(searchText)
+
+    );
+  });
 
   useEffect(() => {
 
@@ -40,6 +77,28 @@ function ErrorLogs() {
       <p className="text-gray-500 mb-8">
         History of all transfer errors.
       </p>
+      <div className="mb-6">
+
+        <input
+          type="text"
+          placeholder="Search by Date, Transfer Id, Record Id, Error Field or Error Message"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="
+      w-[550px]
+      border
+      border-gray-300
+      rounded-lg
+      px-4
+      py-2
+      bg-white
+      focus:outline-none
+      focus:ring-2
+      focus:ring-blue-500
+    "
+        />
+
+      </div>
 
       <div className="bg-white rounded-xl shadow-md border overflow-hidden">
 
@@ -77,7 +136,7 @@ function ErrorLogs() {
 
             {
 
-              errors.map((error) => (
+              filteredErrors.map((error) => (
 
                 <tr
                   key={error.id}
