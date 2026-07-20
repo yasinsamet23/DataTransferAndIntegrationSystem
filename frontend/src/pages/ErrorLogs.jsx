@@ -54,6 +54,10 @@ function ErrorLogs() {
               </th>
 
               <th className="text-left p-4">
+                Transfer Id
+              </th>
+
+              <th className="text-left p-4">
                 Record Id
               </th>
 
@@ -87,6 +91,13 @@ function ErrorLogs() {
                         .toLocaleString()
                     }
 
+                  </td>
+
+                  <td
+                    className="p-4"
+                    title={error.transferLogId}
+                  >
+                    {error.transferLogId.substring(0, 8)}
                   </td>
 
                   <td

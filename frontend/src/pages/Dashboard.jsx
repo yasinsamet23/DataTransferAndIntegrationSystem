@@ -212,6 +212,7 @@ function Dashboard() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
+              <th className="text-left p-4">Transfer Id</th>
               <th className="text-left p-4">Transfer Date</th>
               <th className="text-left p-4">Total Records</th>
               <th className="text-left p-4">Success Count</th>
@@ -228,6 +229,9 @@ function Dashboard() {
                     key={log.id}
                     className="border-t"
                   >
+                    <td className="p-4" title={log.id}>
+                    {log.id.substring(0, 8)}
+                  </td>
 
                     <td className="p-4">
                       {

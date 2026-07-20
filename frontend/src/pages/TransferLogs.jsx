@@ -49,6 +49,9 @@ function TransferLogs() {
           <thead className="bg-gray-100">
 
             <tr>
+              <th className="text-left p-4">
+                Transfer Id
+              </th>
 
               <th className="text-left p-4">
                 Transfer Date
@@ -80,6 +83,9 @@ function TransferLogs() {
                   key={log.id}
                   className="border-t hover:bg-gray-50"
                 >
+                  <td className="p-4" title={log.id}>
+                    {log.id.substring(0, 8)}
+                  </td>
 
                   <td className="p-4">
 
