@@ -28,24 +28,7 @@ public class TransferService : ITransferService
 
     public async Task<TransferResultDto> StartTransferAsync()
     {
-        var response = await _httpClient.GetAsync("https://dummyjson.com/users");
-
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var externalUsers =
-            JsonSerializer.Deserialize<ExternalUsersResponseDto>(json, options);
-
-        if (externalUsers == null)
-        {
-            throw new Exception("Users could not be retrieved from the external API.");
-        }
+        var externalUsers = await GetExternalUsersAsync();
 
         int successCount = 0;
         int failedCount = 0;
@@ -53,88 +36,17 @@ public class TransferService : ITransferService
 
         var processedEmails = new HashSet<string>();
 
-        await _transferLogService.AddTransferLogAsync(
-    new TransferLogDto
-    {
-        Id = transferLogId,
-        TransferDate = DateTime.UtcNow,
-        TotalRecords = 0,
-        SuccessCount = 0,
-        Status = "Running"
-    });
-
-        externalUsers.Users[0].FirstName = "";
-        externalUsers.Users[1].Email = "";
-        externalUsers.Users[2].Email = "@@example.com";
-        externalUsers.Users[3].Email = "goodexample234@gmail.com";
-        externalUsers.Users[4].Email = "goodexample234@gmail.com";
-        externalUsers.Users[5].Email = "lily.lee@x.dummyjson.com";
-
-
+        await CreateRunningTransferLogAsync(transferLogId);
 
         foreach (var externalUser in externalUsers.Users)
         {
 
 
-            if (string.IsNullOrWhiteSpace(externalUser.FirstName))
+            if (!await ValidateUserAsync(
+                externalUser,
+                transferLogId,
+                processedEmails))
             {
-                await _errorLogService.AddErrorAsync(
-    new ErrorLogDto
-    {
-        TransferLogId = transferLogId,
-        RecordId = Guid.NewGuid(),
-        ErrorField = "FirstName",
-        ErrorMessage = "First name is required."
-    });
-
-                failedCount++;
-                continue;
-            }
-
-
-            if (string.IsNullOrWhiteSpace(externalUser.Email))
-            {
-                await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        TransferLogId = transferLogId,
-                        RecordId = Guid.NewGuid(),
-                        ErrorField = "Email",
-                        ErrorMessage = "Email is required."
-                    });
- 
-                failedCount++;
-                continue;
-            }
-
-            if (!Regex.IsMatch(
-    externalUser.Email,
-    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-            {
-                await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        TransferLogId = transferLogId,
-                        RecordId = Guid.NewGuid(),
-                        ErrorField = "Email",
-                        ErrorMessage = "Invalid email format."
-                    });
-
-                failedCount++;
-                continue;
-            }
-
-            if (processedEmails.Contains(externalUser.Email))
-            {
-                await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        TransferLogId = transferLogId,
-                        RecordId = Guid.NewGuid(),
-                        ErrorField = "Email",
-                        ErrorMessage = "Duplicate email in transfer package."
-                    });
-
                 failedCount++;
                 continue;
             }
@@ -156,16 +68,9 @@ public class TransferService : ITransferService
                 continue;
             }
 
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = $"{externalUser.FirstName} {externalUser.LastName}",
-                Email = externalUser.Email,
-                Phone = externalUser.Phone,
-                CreatedDate = DateTime.UtcNow
-            };
+            var user = CreateUser(externalUser);
 
-            processedEmails.Add(externalUser.Email);
+            processedEmails.Add(user.Email);
 
             await _userRepository.AddAsync(user);
 
@@ -174,41 +79,199 @@ public class TransferService : ITransferService
 
         await _userRepository.SaveChangesAsync();
 
-        string status;
-        string message;
+        var result = CalculateTransferResult(successCount, failedCount);
 
-        if (failedCount == 0)
-        {
-            status = "Completed";
-            message = "Transfer completed successfully.";
-        }
-        else if (successCount == 0)
-        {
-            status = "Failed";
-            message = "Transfer failed. No users were transferred.";
-        }
-        else
-        {
-            status = "Completed With Errors";
-            message = "Transfer completed with errors.";
-        }
-
-        await _transferLogService.UpdateTransferLogAsync(
-    new TransferLogDto
-    {
-        Id = transferLogId,
-        TransferDate = DateTime.UtcNow,
-        TotalRecords = externalUsers.Users.Count,
-        SuccessCount = successCount,
-        Status = status
-    });
+        await UpdateTransferLogAsync(
+        transferLogId,
+        externalUsers.Users.Count,
+        successCount,
+        result.Status);
 
         return new TransferResultDto
         {
             TotalRecords = externalUsers.Users.Count,
             SuccessfulRecords = successCount,
             FailedRecords = failedCount,
-            Message = message
+            Message = result.Message
         };
     }
+
+
+    private async Task<ExternalUsersResponseDto> GetExternalUsersAsync()
+    {
+        var response =
+            await _httpClient.GetAsync("https://dummyjson.com/users");
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var users =
+            JsonSerializer.Deserialize<ExternalUsersResponseDto>(
+                json,
+                options);
+
+        if (users == null)
+            throw new Exception("Users could not be retrieved from the external API.");
+
+        return users;
+    }
+
+    private async Task CreateRunningTransferLogAsync(Guid transferLogId)
+    {
+        await _transferLogService.AddTransferLogAsync(
+            new TransferLogDto
+            {
+                Id = transferLogId,
+                TransferDate = DateTime.UtcNow,
+                TotalRecords = 0,
+                SuccessCount = 0,
+                Status = "Running"
+            });
+    }
+
+    private User CreateUser(ExternalUserDto externalUser)
+    {
+        return new User
+        {
+            Id = Guid.NewGuid(),
+            Name = $"{externalUser.FirstName} {externalUser.LastName}",
+            Email = externalUser.Email,
+            Phone = externalUser.Phone,
+            CreatedDate = DateTime.UtcNow
+        };
+    }
+
+    private async Task AddErrorAsync(
+    Guid transferLogId,
+    Guid recordId,
+    string field,
+    string message)
+    {
+        await _errorLogService.AddErrorAsync(
+            new ErrorLogDto
+            {
+                TransferLogId = transferLogId,
+                RecordId = recordId,
+                ErrorField = field,
+                ErrorMessage = message
+            });
+    }
+
+    private async Task<bool> ValidateUserAsync(
+    ExternalUserDto externalUser,
+    Guid transferLogId,
+    HashSet<string> processedEmails)
+    {
+        // FirstName kontrolü
+        if (string.IsNullOrWhiteSpace(externalUser.FirstName))
+        {
+            await AddErrorAsync(
+                transferLogId,
+                Guid.NewGuid(),
+                "FirstName",
+                "First name is required.");
+
+            return false;
+        }
+
+        // Email boş mu?
+        if (string.IsNullOrWhiteSpace(externalUser.Email))
+        {
+            await AddErrorAsync(
+                transferLogId,
+                Guid.NewGuid(),
+                "Email",
+                "Email is required.");
+
+            return false;
+        }
+
+        // Email formatı doğru mu?
+        if (!Regex.IsMatch(
+            externalUser.Email,
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            await AddErrorAsync(
+                transferLogId,
+                Guid.NewGuid(),
+                "Email",
+                "Invalid email format.");
+
+            return false;
+        }
+
+        // Aynı transfer paketinde duplicate email var mı?
+        if (processedEmails.Contains(externalUser.Email))
+        {
+            await AddErrorAsync(
+                transferLogId,
+                Guid.NewGuid(),
+                "Email",
+                "Duplicate email in transfer package.");
+
+            return false;
+        }
+
+        // Veritabanında aynı email var mı?
+        var existingUser =
+            await _userRepository.GetByEmailAsync(externalUser.Email);
+
+        if (existingUser != null)
+        {
+            await AddErrorAsync(
+                transferLogId,
+                existingUser.Id,
+                "Email",
+                "User already exists.");
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private (string Status, string Message)
+    CalculateTransferResult(
+        int successCount,
+        int failedCount)
+        {
+            if (failedCount == 0)
+                return ("Completed",
+                        "Transfer completed successfully.");
+
+            if (successCount == 0)
+                return ("Failed",
+                        "Transfer failed. No users were transferred.");
+
+            return ("Completed With Errors",
+                    "Transfer completed with errors.");
+    }
+
+
+    private async Task UpdateTransferLogAsync(
+    Guid transferLogId,
+    int totalRecords,
+    int successCount,
+    string status)
+    {
+        await _transferLogService.UpdateTransferLogAsync(
+            new TransferLogDto
+            {
+                Id = transferLogId,
+                TransferDate = DateTime.UtcNow,
+                TotalRecords = totalRecords,
+                SuccessCount = successCount,
+                Status = status
+            });
+    }
+
+
+
+
 }

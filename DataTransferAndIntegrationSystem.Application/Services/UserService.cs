@@ -18,14 +18,9 @@ public class UserService : IUserService
     {
         var users = await _userRepository.GetAllAsync();
 
-        return users.Select(user => new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            CreatedDate = user.CreatedDate
-        }).ToList();
+        return users
+    .Select(MapToUserDto)
+    .ToList();
     }
 
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
@@ -35,86 +30,40 @@ public class UserService : IUserService
         if (user == null)
             return null;
 
-        return new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            CreatedDate = user.CreatedDate
-        };
+        return MapToUserDto(user);
     }
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
     {
-        if (string.IsNullOrWhiteSpace(createUserDto.Name))
-        {
-            throw new Exception("The Name field is required.");
-        }
+        ValidateName(createUserDto.Name);
 
-        if (string.IsNullOrWhiteSpace(createUserDto.Email))
-        {
-            throw new Exception("Email is required.");
-        }
-
-        if (!Regex.IsMatch(
-            createUserDto.Email,
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-        {
-            throw new Exception("Invalid email format.");
-        }
+        ValidateEmail(createUserDto.Email);
 
         var existingUser = await _userRepository.GetByEmailAsync(createUserDto.Email);
 
         if (existingUser != null)
             throw new Exception("This email address is already registered.");
 
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = createUserDto.Name,
-            Email = createUserDto.Email,
-            Phone = createUserDto.Phone,
-            CreatedDate = DateTime.UtcNow
-        };
+        var user = CreateUser(createUserDto);
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        return new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            CreatedDate = user.CreatedDate
-        };
+        return MapToUserDto(user);
     }
 
     public async Task UpdateUserAsync(Guid id, UpdateUserDto updateUserDto)
     {
-        if (string.IsNullOrWhiteSpace(updateUserDto.Name))
-        {
-            throw new Exception("Name is required.");
-        }
+        ValidateName(updateUserDto.Name);
 
-        if (string.IsNullOrWhiteSpace(updateUserDto.Email))
-        {
-            throw new Exception("Email is required.");
-        }
+        ValidateEmail(updateUserDto.Email);
 
-        if (!Regex.IsMatch(
-                updateUserDto.Email,
-                @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-        {
-            throw new Exception("Invalid email format.");
-        }
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
             throw new Exception("User not found.");
-        
-        
+
+
         var existingUser = await _userRepository.GetByEmailAsync(updateUserDto.Email);
 
         if (existingUser != null && existingUser.Id != user.Id)
@@ -140,5 +89,53 @@ public class UserService : IUserService
 
         _userRepository.Delete(user);
         await _userRepository.SaveChangesAsync();
+    }
+
+    private UserDto MapToUserDto(User user)
+    {
+        return new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Phone = user.Phone,
+            CreatedDate = user.CreatedDate
+        };
+    }
+
+    private void ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new Exception("Name is required.");
+        }
+
+    }
+
+    private void ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new Exception("Email is required.");
+        }
+
+        if (!Regex.IsMatch(
+                email,
+                @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            throw new Exception("Invalid email format.");
+        }
+    }
+
+    private User CreateUser(CreateUserDto dto)
+    {
+        return new User
+        {
+            Id = Guid.NewGuid(),
+            Name = dto.Name,
+            Email = dto.Email,
+            Phone = dto.Phone,
+            CreatedDate = DateTime.UtcNow
+        };
     }
 }
