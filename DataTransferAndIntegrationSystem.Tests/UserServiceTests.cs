@@ -16,500 +16,327 @@ public class UserServiceTests
     public UserServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-
-        _userService = new UserService(
-            _userRepositoryMock.Object);
+        _userService = new UserService(_userRepositoryMock.Object);
     }
-    // CreateUserAsync
+
+    #region CreateUserAsync Tests
+
     [Fact]
     public async Task CreateUserAsync_NameIsEmpty_ShouldThrowException()
     {
-        var dto = new CreateUserDto
-        {
-            Name = "",
-            Email = "test@test.com",
-            Phone = "123456"
-        };
+        // Arrange
+        var dto = CreateTestCreateUserDto(name: "");
 
-        var action = async () =>
-            await _userService.CreateUserAsync(dto);
+        // Act
+        var action = async () => await _userService.CreateUserAsync(dto);
 
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("Name is required.");
+        // Assert
+        await action.Should().ThrowAsync<Exception>().WithMessage("Name is required.");
     }
 
     [Fact]
     public async Task CreateUserAsync_EmailIsEmpty_ShouldThrowException()
     {
-        var dto = new CreateUserDto
-        {
-            Name = "Yasin",
-            Email = "",
-            Phone = "123"
-        };
+        // Arrange
+        var dto = CreateTestCreateUserDto(email: "");
 
-        var action = async () =>
-            await _userService.CreateUserAsync(dto);
+        // Act
+        var action = async () => await _userService.CreateUserAsync(dto);
 
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("Email is required.");
+        // Assert
+        await action.Should().ThrowAsync<Exception>().WithMessage("Email is required.");
     }
 
     [Fact]
     public async Task CreateUserAsync_InvalidEmail_ShouldThrowException()
     {
-        var dto = new CreateUserDto
-        {
-            Name = "Yasin",
-            Email = "invalidmail",
-            Phone = "123"
-        };
+        // Arrange
+        var dto = CreateTestCreateUserDto(email: "invalidmail");
 
-        var action = async () =>
-            await _userService.CreateUserAsync(dto);
+        // Act
+        var action = async () => await _userService.CreateUserAsync(dto);
 
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("Invalid email format.");
+        // Assert
+        await action.Should().ThrowAsync<Exception>().WithMessage("Invalid email format.");
     }
-
 
     [Fact]
     public async Task CreateUserAsync_EmailAlreadyExists_ShouldThrowException()
     {
-        var dto = new CreateUserDto
-        {
-            Name = "Yasin",
-            Email = "test@test.com",
-            Phone = "123"
-        };
-
+        // Arrange
+        var dto = CreateTestCreateUserDto();
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(dto.Email))
             .ReturnsAsync(new User());
 
-        var action = async () =>
-            await _userService.CreateUserAsync(dto);
+        // Act
+        var action = async () => await _userService.CreateUserAsync(dto);
 
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("This email address is already registered.");
+        // Assert
+        await action.Should().ThrowAsync<Exception>().WithMessage("This email address is already registered.");
     }
 
     [Fact]
     public async Task CreateUserAsync_ValidUser_ShouldCreateUser()
     {
-        var dto = new CreateUserDto
-        {
-            Name = "Yasin",
-            Email = "test@test.com",
-            Phone = "555"
-        };
-
+        // Arrange
+        var dto = CreateTestCreateUserDto();
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(dto.Email))
             .ReturnsAsync((User?)null);
 
-        var result =
-            await _userService.CreateUserAsync(dto);
+        // Act
+        var result = await _userService.CreateUserAsync(dto);
 
+        // Assert
         result.Should().NotBeNull();
-
         result.Name.Should().Be(dto.Name);
-
         result.Email.Should().Be(dto.Email);
 
-        _userRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<User>()),
-            Times.Once);
-
-        _userRepositoryMock.Verify(
-            x => x.SaveChangesAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Once);
+        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
-    // GetAllUsersAsync
+
+    #endregion
+
+    #region GetAllUsersAsync Tests
+
     [Fact]
     public async Task GetAllUsersAsync_ShouldReturnUsers()
     {
         // Arrange
-
         var users = new List<User>
-    {
-        new User
         {
-            Id = Guid.NewGuid(),
-            Name = "Yasin",
-            Email = "yasin@test.com",
-            Phone = "111",
-            CreatedDate = DateTime.UtcNow
-        },
+            CreateTestUser(name: "John", email: "john@test.com", phone: "111"),
+            CreateTestUser(name: "Jane", email: "jane@test.com", phone: "222")
+        };
 
-        new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Ahmet",
-            Email = "ahmet@test.com",
-            Phone = "222",
-            CreatedDate = DateTime.UtcNow
-        }
-    };
-
-        _userRepositoryMock
-            .Setup(x => x.GetAllAsync())
-            .ReturnsAsync(users);
+        _userRepositoryMock.Setup(x => x.GetAllAsync()).ReturnsAsync(users);
 
         // Act
-
         var result = await _userService.GetAllUsersAsync();
 
         // Assert
-
         result.Should().NotBeNull();
-
         result.Should().HaveCount(2);
+        result[0].Name.Should().Be("John");
+        result[1].Name.Should().Be("Jane");
 
-        result[0].Name.Should().Be("Yasin");
-
-        result[1].Name.Should().Be("Ahmet");
-
-        _userRepositoryMock.Verify(
-            x => x.GetAllAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.GetAllAsync(), Times.Once);
     }
 
     [Fact]
     public async Task GetAllUsersAsync_ShouldReturnEmptyList_WhenNoUsersExist()
     {
         // Arrange
-
-        _userRepositoryMock
-            .Setup(x => x.GetAllAsync())
-            .ReturnsAsync(new List<User>());
+        _userRepositoryMock.Setup(x => x.GetAllAsync()).ReturnsAsync(new List<User>());
 
         // Act
-
         var result = await _userService.GetAllUsersAsync();
 
         // Assert
-
         result.Should().NotBeNull();
-
         result.Should().BeEmpty();
 
-        _userRepositoryMock.Verify(
-            x => x.GetAllAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.GetAllAsync(), Times.Once);
     }
-    // GetUserByIdAsync
+
+    #endregion
+
+    #region GetUserByIdAsync Tests
+
     [Fact]
     public async Task GetUserByIdAsync_ShouldReturnUser()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
+        var user = CreateTestUser(id: userId);
 
-        var user = new User
-        {
-            Id = userId,
-            Name = "Yasin",
-            Email = "yasin@test.com",
-            Phone = "555",
-            CreatedDate = DateTime.UtcNow
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
 
         // Act
-
         var result = await _userService.GetUserByIdAsync(userId);
 
         // Assert
-
         result.Should().NotBeNull();
-
         result!.Id.Should().Be(user.Id);
-
         result.Name.Should().Be(user.Name);
-
         result.Email.Should().Be(user.Email);
-
         result.Phone.Should().Be(user.Phone);
-
         result.CreatedDate.Should().Be(user.CreatedDate);
 
-        _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(userId),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.GetByIdAsync(userId), Times.Once);
     }
 
     [Fact]
     public async Task GetUserByIdAsync_UserNotFound_ShouldReturnNull()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync((User?)null);
 
         // Act
-
         var result = await _userService.GetUserByIdAsync(userId);
 
         // Assert
-
         result.Should().BeNull();
-
-        _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(userId),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.GetByIdAsync(userId), Times.Once);
     }
 
-    //UpdateUserAsync
+    #endregion
+
+    #region UpdateUserAsync Tests
+
     [Fact]
     public async Task UpdateUserAsync_UserNotFound_ShouldThrowException()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
-
-        var dto = new UpdateUserDto
-        {
-            Name = "Yasin",
-            Email = "yasin@test.com",
-            Phone = "555"
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync((User?)null);
+        var dto = CreateTestUpdateUserDto();
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync((User?)null);
 
         // Act
-
-        var action = async () =>
-            await _userService.UpdateUserAsync(userId, dto);
+        var action = async () => await _userService.UpdateUserAsync(userId, dto);
 
         // Assert
-
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("User not found.");
+        await action.Should().ThrowAsync<Exception>().WithMessage("User not found.");
     }
 
     [Fact]
     public async Task UpdateUserAsync_EmailAlreadyExists_ShouldThrowException()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
+        var dto = CreateTestUpdateUserDto(email: "test@test.com");
+        var currentUser = CreateTestUser(id: userId, name: "Old Name", email: "old@test.com", phone: "111");
+        var anotherUser = CreateTestUser(name: "Jane", email: "test@test.com", phone: "999");
 
-        var dto = new UpdateUserDto
-        {
-            Name = "Yasin",
-            Email = "test@test.com",
-            Phone = "555"
-        };
-
-        var currentUser = new User
-        {
-            Id = userId,
-            Name = "Old Name",
-            Email = "old@test.com",
-            Phone = "111"
-        };
-
-        var anotherUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Ahmet",
-            Email = "test@test.com",
-            Phone = "999"
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync(currentUser);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(dto.Email))
-            .ReturnsAsync(anotherUser);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(currentUser);
+        _userRepositoryMock.Setup(x => x.GetByEmailAsync(dto.Email)).ReturnsAsync(anotherUser);
 
         // Act
-
-        var action = async () =>
-            await _userService.UpdateUserAsync(userId, dto);
+        var action = async () => await _userService.UpdateUserAsync(userId, dto);
 
         // Assert
-
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("A user with this email already exists.");
+        await action.Should().ThrowAsync<Exception>().WithMessage("A user with this email already exists.");
     }
 
     [Fact]
     public async Task UpdateUserAsync_SameEmail_ShouldUpdateUser()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
+        var dto = CreateTestUpdateUserDto(name: "New Name", email: "same@test.com", phone: "999");
+        var user = CreateTestUser(id: userId, name: "Old Name", email: "same@test.com", phone: "111");
 
-        var dto = new UpdateUserDto
-        {
-            Name = "New Name",
-            Email = "same@test.com",
-            Phone = "999"
-        };
-
-        var user = new User
-        {
-            Id = userId,
-            Name = "Old Name",
-            Email = "same@test.com",
-            Phone = "111"
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(dto.Email))
-            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(x => x.GetByEmailAsync(dto.Email)).ReturnsAsync(user);
 
         // Act
-
         await _userService.UpdateUserAsync(userId, dto);
 
         // Assert
-
         user.Name.Should().Be(dto.Name);
-
         user.Email.Should().Be(dto.Email);
-
         user.Phone.Should().Be(dto.Phone);
 
-        _userRepositoryMock.Verify(
-            x => x.Update(user),
-            Times.Once);
-
-        _userRepositoryMock.Verify(
-            x => x.SaveChangesAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.Update(user), Times.Once);
+        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
     public async Task UpdateUserAsync_ValidData_ShouldUpdateUser()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
+        var dto = CreateTestUpdateUserDto(name: "New Name", email: "new@test.com", phone: "999");
+        var user = CreateTestUser(id: userId, name: "Old Name", email: "old@test.com", phone: "111");
 
-        var dto = new UpdateUserDto
-        {
-            Name = "New Name",
-            Email = "new@test.com",
-            Phone = "999"
-        };
-
-        var user = new User
-        {
-            Id = userId,
-            Name = "Old Name",
-            Email = "old@test.com",
-            Phone = "111"
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(dto.Email))
-            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(x => x.GetByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
 
         // Act
-
         await _userService.UpdateUserAsync(userId, dto);
 
         // Assert
-
         user.Name.Should().Be(dto.Name);
-
         user.Email.Should().Be(dto.Email);
-
         user.Phone.Should().Be(dto.Phone);
 
-        _userRepositoryMock.Verify(
-            x => x.Update(user),
-            Times.Once);
-
-        _userRepositoryMock.Verify(
-            x => x.SaveChangesAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.Update(user), Times.Once);
+        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
 
-    // DeleteUserAsync
+    #endregion
+
+    #region DeleteUserAsync Tests
+
     [Fact]
     public async Task DeleteUserAsync_UserNotFound_ShouldThrowException()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync((User?)null);
 
         // Act
-
-        var action = async () =>
-            await _userService.DeleteUserAsync(userId);
+        var action = async () => await _userService.DeleteUserAsync(userId);
 
         // Assert
-
-        await action.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage("User not found.");
+        await action.Should().ThrowAsync<Exception>().WithMessage("User not found.");
     }
 
     [Fact]
     public async Task DeleteUserAsync_ExistingUser_ShouldDeleteUser()
     {
         // Arrange
-
         var userId = Guid.NewGuid();
+        var user = CreateTestUser(id: userId);
 
-        var user = new User
-        {
-            Id = userId,
-            Name = "Yasin",
-            Email = "yasin@test.com",
-            Phone = "555",
-            CreatedDate = DateTime.UtcNow
-        };
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(userId))
-            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
 
         // Act
-
         await _userService.DeleteUserAsync(userId);
 
         // Assert
-
-        _userRepositoryMock.Verify(
-            x => x.Delete(user),
-            Times.Once);
-
-        _userRepositoryMock.Verify(
-            x => x.SaveChangesAsync(),
-            Times.Once);
+        _userRepositoryMock.Verify(x => x.Delete(user), Times.Once);
+        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
 
+    #endregion
+
+    #region Helper Methods
+
+    private static CreateUserDto CreateTestCreateUserDto(
+        string name = "John", 
+        string email = "test@test.com", 
+        string phone = "123456")
+    {
+        return new CreateUserDto { Name = name, Email = email, Phone = phone };
+    }
+
+    private static UpdateUserDto CreateTestUpdateUserDto(
+        string name = "John", 
+        string email = "john@test.com", 
+        string phone = "555")
+    {
+        return new UpdateUserDto { Name = name, Email = email, Phone = phone };
+    }
+
+    private static User CreateTestUser(
+        Guid? id = null, 
+        string name = "John", 
+        string email = "john@test.com", 
+        string phone = "555")
+    {
+        return new User
+        {
+            Id = id ?? Guid.NewGuid(),
+            Name = name,
+            Email = email,
+            Phone = phone,
+            CreatedDate = DateTime.UtcNow
+        };
+    }
+
+    #endregion
 }
