@@ -38,13 +38,14 @@ public class UserService : IUserService
         ValidateName(createUserDto.Name);
 
         ValidateEmail(createUserDto.Email);
+        var email = NormalizeEmail(createUserDto.Email);
 
-        var existingUser = await _userRepository.GetByEmailAsync(createUserDto.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(email);
 
         if (existingUser != null)
             throw new Exception("This email address is already registered.");
 
-        var user = CreateUser(createUserDto);
+        var user = CreateUser(createUserDto, email);
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
@@ -57,6 +58,7 @@ public class UserService : IUserService
         ValidateName(updateUserDto.Name);
 
         ValidateEmail(updateUserDto.Email);
+        var email = NormalizeEmail(updateUserDto.Email);
 
         var user = await _userRepository.GetByIdAsync(id);
 
@@ -64,7 +66,7 @@ public class UserService : IUserService
             throw new Exception("User not found.");
 
 
-        var existingUser = await _userRepository.GetByEmailAsync(updateUserDto.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(email);
 
         if (existingUser != null && existingUser.Id != user.Id)
         {
@@ -73,7 +75,7 @@ public class UserService : IUserService
 
 
         user.Name = updateUserDto.Name;
-        user.Email = updateUserDto.Email;
+        user.Email = email;
         user.Phone = updateUserDto.Phone;
 
         _userRepository.Update(user);
@@ -127,15 +129,22 @@ public class UserService : IUserService
         }
     }
 
-    private User CreateUser(CreateUserDto dto)
+    private User CreateUser(
+    CreateUserDto dto,
+    string email)
     {
         return new User
         {
             Id = Guid.NewGuid(),
             Name = dto.Name,
-            Email = dto.Email,
+            Email = email,
             Phone = dto.Phone,
             CreatedDate = DateTime.UtcNow
         };
+    }
+
+    private string NormalizeEmail(string email)
+    {
+        return email.Trim().ToLowerInvariant();
     }
 }
