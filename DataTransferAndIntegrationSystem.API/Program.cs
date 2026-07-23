@@ -29,6 +29,7 @@ builder.Services.AddScoped<ITransferLogRepository, TransferLogRepository>();
 builder.Services.AddScoped<ITransferLogService, TransferLogService>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
+builder.Services.AddScoped<ICsvReaderService, CsvReaderService>();
 
 builder.Services.AddHttpClient();
 

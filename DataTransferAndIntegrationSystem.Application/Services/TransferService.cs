@@ -51,6 +51,12 @@ public class TransferService : ITransferService
         return await ExecuteTransferAsync(users);
     }
 
+    public async Task<TransferResultDto> StartCsvTransferAsync(
+    List<ExternalUserDto> users)
+    {
+        return await ExecuteTransferAsync(users);
+    }
+
 
     private async Task<ExternalUsersResponseDto> GetDummyUsersAsync()
     {
@@ -286,12 +292,13 @@ public class TransferService : ITransferService
 
             successCount++;
         }
+
         if (usersToInsert.Count > 0)
         {
             await _userRepository.BulkInsertAsync(usersToInsert);
         }
 
-        
+
 
         var result = CalculateTransferResult(successCount, failedCount);
 

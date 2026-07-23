@@ -6,4 +6,7 @@ public interface ITransferService
 {
     Task<TransferResultDto> StartTransferAsync();
     Task<TransferResultDto> StartNightlyTransferAsync();
+    Task<TransferResultDto> StartCsvTransferAsync(
+    List<ExternalUserDto> users);
+    
 }
