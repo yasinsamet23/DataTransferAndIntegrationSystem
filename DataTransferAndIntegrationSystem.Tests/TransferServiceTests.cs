@@ -16,7 +16,7 @@ public class TransferServiceTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ITransferLogService> _transferLogServiceMock;
     private readonly Mock<IErrorLogService> _errorLogServiceMock;
-
+    private readonly Mock<IMockarooSettings> _mockarooSettingsMock = new();
     public TransferServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
@@ -120,7 +120,7 @@ public class TransferServiceTests
         result.Message.Should().Be("Transfer failed. No users were transferred.");
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
-        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e => 
+        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "FirstName" && e.ErrorMessage == "First name is required.")), Times.Once);
     }
 
@@ -139,7 +139,7 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
-        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e => 
+        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "Email is required.")), Times.Once);
     }
 
@@ -157,7 +157,7 @@ public class TransferServiceTests
         result.SuccessfulRecords.Should().Be(0);
         result.FailedRecords.Should().Be(1);
 
-        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e => 
+        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "Invalid email format.")), Times.Once);
     }
 
@@ -179,7 +179,7 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Once);
-        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e => 
+        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "Duplicate email in transfer package.")), Times.Once);
     }
 
@@ -208,7 +208,7 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
-        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e => 
+        _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "User already exists.")), Times.Once);
     }
 
@@ -258,11 +258,16 @@ public class TransferServiceTests
 
         var httpClient = new HttpClient(handlerMock.Object);
 
+        _mockarooSettingsMock
+    .Setup(x => x.MockarooUrl)
+    .Returns("https://test.com");
+
         return new TransferService(
-            _userRepositoryMock.Object,
-            httpClient,
-            _transferLogServiceMock.Object,
-            _errorLogServiceMock.Object);
+    _userRepositoryMock.Object,
+    httpClient,
+    _transferLogServiceMock.Object,
+    _errorLogServiceMock.Object,
+    _mockarooSettingsMock.Object);
     }
 
     #endregion

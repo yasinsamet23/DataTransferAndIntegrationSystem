@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.24" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.28" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.18">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DataTransferAndIntegrationSystem.Application\DataTransferAndIntegrationSystem.Application.csproj" />
     <ProjectReference Include="..\DataTransferAndIntegrationSystem.Persistence\DataTransferAndIntegrationSystem.Persistence.csproj" />
+    <ProjectReference Include="..\DataTransferAndIntegrationSystem.Infrastructure\DataTransferAndIntegrationSystem.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

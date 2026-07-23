@@ -12,95 +12,50 @@ public class TransferService : ITransferService
     private readonly HttpClient _httpClient;
     private readonly ITransferLogService _transferLogService;
     private readonly IErrorLogService _errorLogService;
+    private readonly IMockarooSettings _mockarooSettings;
+
+    private const string DummyJsonUrl =
+    "https://dummyjson.com/users";
 
 
     public TransferService(
     IUserRepository userRepository,
     HttpClient httpClient,
     ITransferLogService transferLogService,
-    IErrorLogService errorLogService)
+    IErrorLogService errorLogService,
+    IMockarooSettings mockarooSettings)
     {
         _userRepository = userRepository;
         _httpClient = httpClient;
         _transferLogService = transferLogService;
         _errorLogService = errorLogService;
+        _mockarooSettings = mockarooSettings;
+
     }
 
     public async Task<TransferResultDto> StartTransferAsync()
     {
-        var externalUsers = await GetExternalUsersAsync();
+        var externalUsers =
+       await GetDummyUsersAsync();
 
-        int successCount = 0;
-        int failedCount = 0;
-        var transferLogId = Guid.NewGuid();
-
-        var processedEmails = new HashSet<string>();
-
-        await CreateRunningTransferLogAsync(transferLogId);
-
-        foreach (var externalUser in externalUsers.Users)
-        {
+        return await ExecuteTransferAsync(
+            externalUsers.Users);
 
 
-            if (!await ValidateUserAsync(
-                externalUser,
-                transferLogId,
-                processedEmails))
-            {
-                failedCount++;
-                continue;
-            }
-            var existingUser =
-                await _userRepository.GetByEmailAsync(externalUser.Email);
+    }
 
-            if (existingUser != null)
-            {
-                await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        TransferLogId = transferLogId,
-                        RecordId = existingUser.Id,
-                        ErrorField = "Email",
-                        ErrorMessage = "User already exists."
-                    });
+    public async Task<TransferResultDto> StartNightlyTransferAsync()
+    {
+        var users = await GetMockarooUsersAsync();
 
-                failedCount++;
-                continue;
-            }
-
-            var user = CreateUser(externalUser);
-
-            processedEmails.Add(user.Email);
-
-            await _userRepository.AddAsync(user);
-
-            successCount++;
-        }
-
-        await _userRepository.SaveChangesAsync();
-
-        var result = CalculateTransferResult(successCount, failedCount);
-
-        await UpdateTransferLogAsync(
-        transferLogId,
-        externalUsers.Users.Count,
-        successCount,
-        result.Status);
-
-        return new TransferResultDto
-        {
-            TotalRecords = externalUsers.Users.Count,
-            SuccessfulRecords = successCount,
-            FailedRecords = failedCount,
-            Message = result.Message
-        };
+        return await ExecuteTransferAsync(users);
     }
 
 
-    private async Task<ExternalUsersResponseDto> GetExternalUsersAsync()
+    private async Task<ExternalUsersResponseDto> GetDummyUsersAsync()
     {
         var response =
-            await _httpClient.GetAsync("https://dummyjson.com/users");
+            await _httpClient.GetAsync(DummyJsonUrl);
 
         response.EnsureSuccessStatusCode();
 
@@ -118,6 +73,32 @@ public class TransferService : ITransferService
 
         if (users == null)
             throw new Exception("Users could not be retrieved from the external API.");
+
+        return users;
+    }
+
+    private async Task<List<ExternalUserDto>> GetMockarooUsersAsync()
+    {
+        var response =
+            await _httpClient.GetAsync(_mockarooSettings.MockarooUrl);
+
+        response.EnsureSuccessStatusCode();
+
+        var json =
+            await response.Content.ReadAsStringAsync();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var users =
+            JsonSerializer.Deserialize<List<ExternalUserDto>>(
+                json,
+                options);
+
+        if (users == null)
+            throw new Exception("Users could not be retrieved from Mockaroo.");
 
         return users;
     }
@@ -240,17 +221,17 @@ public class TransferService : ITransferService
     CalculateTransferResult(
         int successCount,
         int failedCount)
-        {
-            if (failedCount == 0)
-                return ("Completed",
-                        "Transfer completed successfully.");
+    {
+        if (failedCount == 0)
+            return ("Completed",
+                    "Transfer completed successfully.");
 
-            if (successCount == 0)
-                return ("Failed",
-                        "Transfer failed. No users were transferred.");
+        if (successCount == 0)
+            return ("Failed",
+                    "Transfer failed. No users were transferred.");
 
-            return ("Completed With Errors",
-                    "Transfer completed with errors.");
+        return ("Completed With Errors",
+                "Transfer completed with errors.");
     }
 
 
@@ -269,6 +250,75 @@ public class TransferService : ITransferService
                 SuccessCount = successCount,
                 Status = status
             });
+    }
+
+    private async Task<TransferResultDto> ExecuteTransferAsync(
+    List<ExternalUserDto> users)
+    {
+        int successCount = 0;
+        int failedCount = 0;
+        var transferLogId = Guid.NewGuid();
+
+        var processedEmails = new HashSet<string>();
+
+        await CreateRunningTransferLogAsync(transferLogId);
+
+        foreach (var externalUser in users)
+        {
+
+
+            if (!await ValidateUserAsync(
+                externalUser,
+                transferLogId,
+                processedEmails))
+            {
+                failedCount++;
+                continue;
+            }
+            var existingUser =
+                await _userRepository.GetByEmailAsync(externalUser.Email);
+
+            if (existingUser != null)
+            {
+                await _errorLogService.AddErrorAsync(
+                    new ErrorLogDto
+                    {
+                        TransferLogId = transferLogId,
+                        RecordId = existingUser.Id,
+                        ErrorField = "Email",
+                        ErrorMessage = "User already exists."
+                    });
+
+                failedCount++;
+                continue;
+            }
+
+            var user = CreateUser(externalUser);
+
+            processedEmails.Add(user.Email);
+
+            await _userRepository.AddAsync(user);
+
+            successCount++;
+        }
+
+        await _userRepository.SaveChangesAsync();
+
+        var result = CalculateTransferResult(successCount, failedCount);
+
+        await UpdateTransferLogAsync(
+        transferLogId,
+        users.Count,
+        successCount,
+        result.Status);
+
+        return new TransferResultDto
+        {
+            TotalRecords = users.Count,
+            SuccessfulRecords = successCount,
+            FailedRecords = failedCount,
+            Message = result.Message
+        };
     }
 
 
