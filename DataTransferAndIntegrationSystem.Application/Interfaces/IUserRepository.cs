@@ -16,5 +16,9 @@ public interface IUserRepository
 
     void Delete(User user);
 
+    Task BulkInsertAsync(List<User> users);
+
     Task SaveChangesAsync();
+
+    
 }

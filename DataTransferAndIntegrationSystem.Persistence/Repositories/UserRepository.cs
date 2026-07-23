@@ -1,7 +1,7 @@
 using DataTransferAndIntegrationSystem.Application.Interfaces;
 using DataTransferAndIntegrationSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-
+using EFCore.BulkExtensions;
 namespace DataTransferAndIntegrationSystem.Persistence.Repositories;
 
 public class UserRepository : IUserRepository
@@ -34,6 +34,11 @@ public class UserRepository : IUserRepository
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
+    }
+
+    public async Task BulkInsertAsync(List<User> users)
+    {
+        await _context.BulkInsertAsync(users);
     }
 
     public void Update(User user)

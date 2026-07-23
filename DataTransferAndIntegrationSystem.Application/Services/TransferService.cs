@@ -257,6 +257,7 @@ public class TransferService : ITransferService
     {
         int successCount = 0;
         int failedCount = 0;
+        var usersToInsert = new List<User>();
         var transferLogId = Guid.NewGuid();
 
         var processedEmails = new HashSet<string>();
@@ -275,34 +276,22 @@ public class TransferService : ITransferService
                 failedCount++;
                 continue;
             }
-            var existingUser =
-                await _userRepository.GetByEmailAsync(externalUser.Email);
 
-            if (existingUser != null)
-            {
-                await _errorLogService.AddErrorAsync(
-                    new ErrorLogDto
-                    {
-                        TransferLogId = transferLogId,
-                        RecordId = existingUser.Id,
-                        ErrorField = "Email",
-                        ErrorMessage = "User already exists."
-                    });
-
-                failedCount++;
-                continue;
-            }
 
             var user = CreateUser(externalUser);
 
             processedEmails.Add(user.Email);
 
-            await _userRepository.AddAsync(user);
+            usersToInsert.Add(user);
 
             successCount++;
         }
+        if (usersToInsert.Count > 0)
+        {
+            await _userRepository.BulkInsertAsync(usersToInsert);
+        }
 
-        await _userRepository.SaveChangesAsync();
+        
 
         var result = CalculateTransferResult(successCount, failedCount);
 
