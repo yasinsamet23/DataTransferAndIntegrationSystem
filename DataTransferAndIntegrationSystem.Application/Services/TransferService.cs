@@ -269,6 +269,7 @@ public class TransferService : ITransferService
         var processedEmails = new HashSet<string>();
 
         await CreateRunningTransferLogAsync(transferLogId);
+        
 
         foreach (var externalUser in users)
         {
