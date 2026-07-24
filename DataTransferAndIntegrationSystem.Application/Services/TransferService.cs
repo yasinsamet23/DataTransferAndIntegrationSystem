@@ -13,6 +13,7 @@ public class TransferService : ITransferService
     private readonly ITransferLogService _transferLogService;
     private readonly IErrorLogService _errorLogService;
     private readonly IMockarooSettings _mockarooSettings;
+    private readonly IAnomalyDetectionService _anomalyDetectionService;
 
     private const string DummyJsonUrl =
     "https://dummyjson.com/users";
@@ -23,14 +24,15 @@ public class TransferService : ITransferService
     HttpClient httpClient,
     ITransferLogService transferLogService,
     IErrorLogService errorLogService,
-    IMockarooSettings mockarooSettings)
+    IMockarooSettings mockarooSettings,
+    IAnomalyDetectionService anomalyDetectionService)
     {
         _userRepository = userRepository;
         _httpClient = httpClient;
         _transferLogService = transferLogService;
         _errorLogService = errorLogService;
         _mockarooSettings = mockarooSettings;
-
+        _anomalyDetectionService = anomalyDetectionService;
     }
 
     public async Task<TransferResultDto> StartTransferAsync()
@@ -269,6 +271,12 @@ public class TransferService : ITransferService
         var processedEmails = new HashSet<string>();
 
         await CreateRunningTransferLogAsync(transferLogId);
+
+        
+        users[0].FirstName = "A";
+        users[0].LastName = null;
+        users[0].Email = "test@gmail.com";
+        users[0].Phone = "1111111111";
         
 
         foreach (var externalUser in users)
@@ -281,6 +289,27 @@ public class TransferService : ITransferService
                 processedEmails))
             {
                 failedCount++;
+                continue;
+            }
+            
+            var anomalyResult =
+    _anomalyDetectionService.ValidateUser(externalUser);
+
+            if (!anomalyResult.IsValid)
+            {
+                var recordId = Guid.NewGuid();
+
+                foreach (var error in anomalyResult.Errors)
+                {
+                    await AddErrorAsync(
+                        transferLogId,
+                        recordId,
+                        error.Field,
+                        error.Message);
+                }
+
+                failedCount++;
+
                 continue;
             }
 
