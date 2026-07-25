@@ -273,10 +273,7 @@ public class TransferService : ITransferService
         await CreateRunningTransferLogAsync(transferLogId);
 
         
-        users[0].FirstName = "A";
-        users[0].LastName = null;
-        users[0].Email = "test@gmail.com";
-        users[0].Phone = "1111111111";
+        
         
 
         foreach (var externalUser in users)

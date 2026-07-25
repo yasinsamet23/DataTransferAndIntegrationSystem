@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using System.Globalization;
 using DataTransferAndIntegrationSystem.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DataTransferAndIntegrationSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class TransferController : ControllerBase
 {
     private readonly ITransferService _transferService;

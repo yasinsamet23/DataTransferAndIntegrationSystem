@@ -1,11 +1,13 @@
 using DataTransferAndIntegrationSystem.Application.DTOs;
 using DataTransferAndIntegrationSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DataTransferAndIntegrationSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

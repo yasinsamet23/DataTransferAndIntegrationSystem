@@ -17,16 +17,24 @@ public class TransferServiceTests
     private readonly Mock<ITransferLogService> _transferLogServiceMock;
     private readonly Mock<IErrorLogService> _errorLogServiceMock;
     private readonly Mock<IMockarooSettings> _mockarooSettingsMock = new();
+    private readonly Mock<IAnomalyDetectionService> _anomalyDetectionServiceMock;
     public TransferServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _transferLogServiceMock = new Mock<ITransferLogService>();
         _errorLogServiceMock = new Mock<IErrorLogService>();
+        _anomalyDetectionServiceMock = new Mock<IAnomalyDetectionService>();
 
         // Varsayılan davranış: Kullanıcının veritabanında bulunmadığı durum
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
             .ReturnsAsync((User?)null);
+
+        _anomalyDetectionServiceMock
+    .Setup(x => x.ValidateUser(It.IsAny<ExternalUserDto>()))
+    .Returns(new AnomalyResultDto());
+
+
     }
 
     [Fact]
@@ -267,7 +275,8 @@ public class TransferServiceTests
     httpClient,
     _transferLogServiceMock.Object,
     _errorLogServiceMock.Object,
-    _mockarooSettingsMock.Object);
+    _mockarooSettingsMock.Object,
+    _anomalyDetectionServiceMock.Object);
     }
 
     #endregion
