@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import Login from "./pages/Login";
 import MainLayout from "./layouts/MainLayout";
-
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import TransferLogs from "./pages/TransferLogs";
 import ErrorLogs from "./pages/ErrorLogs";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 
 function App() {
@@ -13,21 +13,36 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<MainLayout />}>
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-          <Route index element={<Dashboard />} />
+        <Route element={<ProtectedRoute />}>
 
-          <Route path="users" element={<Users />} />
+          <Route path="/" element={<MainLayout />}>
 
-          <Route
-            path="transfer-logs"
-            element={<TransferLogs />}
-          />
+            <Route
+              index
+              element={<Dashboard />}
+            />
 
-          <Route
-            path="error-logs"
-            element={<ErrorLogs />}
-          />
+            <Route
+              path="users"
+              element={<Users />}
+            />
+
+            <Route
+              path="transfer-logs"
+              element={<TransferLogs />}
+            />
+
+            <Route
+              path="error-logs"
+              element={<ErrorLogs />}
+            />
+
+          </Route>
 
         </Route>
 

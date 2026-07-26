@@ -7,7 +7,7 @@ namespace DataTransferAndIntegrationSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -42,6 +42,7 @@ public class UsersController : ControllerBase
 
     // POST: api/users
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateUser(CreateUserDto createUserDto)
     {
         var createdUser = await _userService.CreateUserAsync(createUserDto);
@@ -54,6 +55,7 @@ public class UsersController : ControllerBase
 
     // PUT: api/users/{id}
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateUser(Guid id, UpdateUserDto updateUserDto)
     {
         await _userService.UpdateUserAsync(id, updateUserDto);
@@ -63,6 +65,7 @@ public class UsersController : ControllerBase
 
     // DELETE: api/users/{id}
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         await _userService.DeleteUserAsync(id);

@@ -6,7 +6,7 @@ namespace DataTransferAndIntegrationSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class LogsController : ControllerBase
 {
     private readonly ITransferLogService _transferLogService;

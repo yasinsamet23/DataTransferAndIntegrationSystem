@@ -60,6 +60,36 @@ function Dashboard() {
   }, [toastData]);
 
 
+
+  const handleApiError = (error, defaultMessage) => {
+
+    console.error(error);
+
+    if (error.response?.status === 403) {
+
+      setTransferStatus("You are not authorized to perform this action.");
+
+      setToastData({
+        totalRecords: 0,
+        successfulRecords: 0,
+        failedRecords: 0,
+        message: "You are not authorized to perform this action."
+      });
+
+      return;
+    }
+
+    setTransferStatus(defaultMessage);
+
+    setToastData({
+      totalRecords: 0,
+      successfulRecords: 0,
+      failedRecords: 0,
+      message: defaultMessage
+    });
+  };
+
+
   const loadUsers = async () => {
 
     try {
@@ -116,18 +146,7 @@ function Dashboard() {
     }
 
     catch (error) {
-
-      console.error(error);
-
-      setTransferStatus("Transfer failed.");
-
-      setToastData({
-        totalRecords: 0,
-        successfulRecords: 0,
-        failedRecords: 0,
-        message: "Transfer failed."
-      });
-
+      handleApiError(error, "Transfer failed.");
     }
 
     finally {
@@ -149,6 +168,7 @@ function Dashboard() {
       const formData = new FormData();
 
       formData.append("file", selectedFile);
+
       const response = await api.post(
         "/transfer/upload",
         formData,
@@ -173,18 +193,7 @@ function Dashboard() {
 
     }
     catch (error) {
-
-      console.error(error);
-
-      setTransferStatus("CSV upload failed.");
-
-      setToastData({
-        totalRecords: 0,
-        successfulRecords: 0,
-        failedRecords: 0,
-        message: "CSV upload failed."
-      });
-
+      handleApiError(error, "CSV upload failed.");
     }
     finally {
 

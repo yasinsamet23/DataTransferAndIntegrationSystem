@@ -9,7 +9,7 @@ namespace DataTransferAndIntegrationSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class TransferController : ControllerBase
 {
     private readonly ITransferService _transferService;
@@ -23,6 +23,7 @@ public class TransferController : ControllerBase
         _csvReaderService = csvReaderService;
     }
     [HttpPost("start")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> StartTransfer()
     {
         var result = await _transferService.StartTransferAsync();
@@ -31,6 +32,7 @@ public class TransferController : ControllerBase
     }
 
     [HttpPost("upload")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UploadCsv(IFormFile file)
     {
         if (file == null || file.Length == 0)
