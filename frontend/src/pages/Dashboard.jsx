@@ -15,8 +15,19 @@ function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [toastData, setToastData] = useState(null);
+  
+  const fileInputClass =
+    "w-full border rounded-lg p-2 cursor-pointer transition duration-200 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-  const totalSuccessful = transferLogs.reduce(
+  const cancelButtonClass =
+    "px-5 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-100 transition duration-200 cursor-pointer";
+
+  const uploadButtonClass =
+    "px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer";
+
+  
+  
+    const totalSuccessful = transferLogs.reduce(
     (total, log) => total + log.successCount,
     0
   );
@@ -388,17 +399,7 @@ function Dashboard() {
               <input
                 type="file"
                 accept=".csv"
-                className="w-full
-        border
-        rounded-lg
-        p-2
-        cursor-pointer
-        transition
-        duration-200
-        hover:border-blue-500
-        focus:outline-none
-        focus:ring-2
-        focus:ring-blue-500"
+                className={fileInputClass}
                 onChange={(e) =>
                   setSelectedFile(e.target.files[0])
                 }
@@ -411,18 +412,7 @@ function Dashboard() {
                     setShowUploadModal(false);
                     setSelectedFile(null);
                   }}
-                  className="
-        px-5
-        py-2
-        rounded-lg
-        bg-white
-        border
-        border-gray-300
-        hover:bg-gray-100
-        transition
-        duration-200
-        cursor-pointer
-    "
+                  className={cancelButtonClass}
                 >
                   Cancel
                 </button>
@@ -430,19 +420,7 @@ function Dashboard() {
                 <button
                   onClick={uploadCsv}
                   disabled={!selectedFile || isUploading}
-                  className="
-        px-5
-        py-2
-        rounded-lg
-        bg-green-600
-        text-white
-        hover:bg-green-700
-        transition
-        duration-200
-        disabled:bg-gray-400
-        disabled:cursor-not-allowed
-        cursor-pointer
-    "
+                  className={uploadButtonClass}
                 >
                   {isUploading ? "Uploading..." : "Upload"}
                 </button>
