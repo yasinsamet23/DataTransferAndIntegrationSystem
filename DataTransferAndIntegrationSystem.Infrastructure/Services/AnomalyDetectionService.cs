@@ -81,6 +81,19 @@ public class AnomalyDetectionService : IAnomalyDetectionService
             return;
         }
 
+        if (Regex.IsMatch(fullName, @"(.)\1{4,}"))
+        {
+            result.Errors.Add(
+    new AnomalyErrorDto
+    {
+        Field = "Name",
+        Message = "Name contains repeated characters."
+    });
+
+            return;
+        }
+
+
         if (Regex.IsMatch(fullName, @"^(.+)\1+$"))
         {
             result.Errors.Add(
@@ -93,17 +106,7 @@ public class AnomalyDetectionService : IAnomalyDetectionService
             return;
         }
 
-        if (Regex.IsMatch(fullName, @"(.)\1{4,}"))
-        {
-            result.Errors.Add(
-    new AnomalyErrorDto
-    {
-        Field = "Name",
-        Message = "Name contains repeated characters."
-    });
 
-            return;
-        }
 
 
     }

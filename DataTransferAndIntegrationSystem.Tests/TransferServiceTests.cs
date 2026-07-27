@@ -54,8 +54,9 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(0);
         result.Message.Should().Be("Transfer completed successfully.");
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Once);
         _transferLogServiceMock.Verify(x => x.AddTransferLogAsync(It.IsAny<TransferLogDto>()), Times.Once);
         _transferLogServiceMock.Verify(x => x.UpdateTransferLogAsync(It.Is<TransferLogDto>(t => t.Status == "Completed")), Times.Once);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.IsAny<ErrorLogDto>()), Times.Never);
@@ -81,8 +82,9 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
         result.Message.Should().Be("Transfer completed with errors.");
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Once);
         _transferLogServiceMock.Verify(x => x.AddTransferLogAsync(It.IsAny<TransferLogDto>()), Times.Once);
         _transferLogServiceMock.Verify(x => x.UpdateTransferLogAsync(It.Is<TransferLogDto>(t => t.Status == "Completed With Errors")), Times.Once);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.IsAny<ErrorLogDto>()), Times.Once);
@@ -105,8 +107,9 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
         result.Message.Should().Be("Transfer failed. No users were transferred.");
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
-        _userRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Never);
         _transferLogServiceMock.Verify(x => x.UpdateTransferLogAsync(It.Is<TransferLogDto>(t => t.Status == "Failed")), Times.Once);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.IsAny<ErrorLogDto>()), Times.Once);
     }
@@ -127,7 +130,9 @@ public class TransferServiceTests
         result.FailedRecords.Should().Be(1);
         result.Message.Should().Be("Transfer failed. No users were transferred.");
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Never);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "FirstName" && e.ErrorMessage == "First name is required.")), Times.Once);
     }
@@ -146,7 +151,9 @@ public class TransferServiceTests
         result.SuccessfulRecords.Should().Be(0);
         result.FailedRecords.Should().Be(1);
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Never);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "Email is required.")), Times.Once);
     }
@@ -186,7 +193,9 @@ public class TransferServiceTests
         result.SuccessfulRecords.Should().Be(1);
         result.FailedRecords.Should().Be(1);
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Once);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Once);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "Duplicate email in transfer package.")), Times.Once);
     }
@@ -215,7 +224,9 @@ public class TransferServiceTests
         result.SuccessfulRecords.Should().Be(0);
         result.FailedRecords.Should().Be(1);
 
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>()), Times.Never);
+        _userRepositoryMock.Verify(
+    x => x.BulkInsertAsync(It.IsAny<List<User>>()),
+    Times.Never);
         _errorLogServiceMock.Verify(x => x.AddErrorAsync(It.Is<ErrorLogDto>(e =>
             e.ErrorField == "Email" && e.ErrorMessage == "User already exists.")), Times.Once);
     }
