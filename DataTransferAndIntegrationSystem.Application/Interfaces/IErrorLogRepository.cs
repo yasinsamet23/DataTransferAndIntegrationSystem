@@ -8,5 +8,7 @@ public interface IErrorLogRepository
 
     Task AddAsync(ErrorLog errorLog);
 
+    Task BulkInsertAsync(List<ErrorLog> errorLogs);
+
     Task SaveChangesAsync();
 }

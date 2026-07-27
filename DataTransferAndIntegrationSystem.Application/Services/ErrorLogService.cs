@@ -44,4 +44,19 @@ public class ErrorLogService : IErrorLogService
 
         await _errorLogRepository.SaveChangesAsync();
     }
+
+    public async Task BulkInsertErrorsAsync(List<ErrorLogDto> errorLogDtos)
+    {
+        var errorLogs = errorLogDtos.Select(dto => new ErrorLog
+        {
+            Id = dto.Id,
+            TransferLogId = dto.TransferLogId,
+            RecordId = dto.RecordId,
+            ErrorField = dto.ErrorField,
+            ErrorMessage = dto.ErrorMessage,
+            CreatedDate = dto.CreatedDate
+        }).ToList();
+
+        await _errorLogRepository.BulkInsertAsync(errorLogs);
+    }
 }

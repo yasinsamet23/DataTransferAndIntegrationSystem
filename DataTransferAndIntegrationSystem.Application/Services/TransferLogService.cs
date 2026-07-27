@@ -43,6 +43,20 @@ public class TransferLogService : ITransferLogService
         await _transferLogRepository.SaveChangesAsync();
     }
 
+    public async Task BulkInsertTransferLogsAsync(List<TransferLogDto> transferLogDtos)
+    {
+        var transferLogs = transferLogDtos.Select(dto => new TransferLog
+        {
+            Id = dto.Id,
+            TransferDate = dto.TransferDate,
+            TotalRecords = dto.TotalRecords,
+            SuccessCount = dto.SuccessCount,
+            Status = dto.Status
+        }).ToList();
+
+        await _transferLogRepository.BulkInsertAsync(transferLogs);
+    }
+
     public async Task UpdateTransferLogAsync(TransferLogDto transferLogDto)
     {
         var transferLog =

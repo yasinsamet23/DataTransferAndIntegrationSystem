@@ -8,6 +8,8 @@ public interface ITransferLogRepository
 
     Task AddAsync(TransferLog transferLog);
 
+    Task BulkInsertAsync(List<TransferLog> transferLogs);
+
     Task SaveChangesAsync();
 
     Task<TransferLog?> GetByIdAsync(Guid id);

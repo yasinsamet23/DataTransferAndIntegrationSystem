@@ -111,19 +111,6 @@ public class TransferService : ITransferService
         return users;
     }
 
-    private async Task CreateRunningTransferLogAsync(Guid transferLogId)
-    {
-        await _transferLogService.AddTransferLogAsync(
-            new TransferLogDto
-            {
-                Id = transferLogId,
-                TransferDate = DateTime.UtcNow,
-                TotalRecords = 0,
-                SuccessCount = 0,
-                Status = "Running"
-            });
-    }
-
     private User CreateUser(ExternalUserDto externalUser)
     {
         return new User
@@ -136,31 +123,35 @@ public class TransferService : ITransferService
         };
     }
 
-    private async Task AddErrorAsync(
+    private static void AddError(
+    List<ErrorLogDto> errorsToInsert,
     Guid transferLogId,
     Guid recordId,
     string field,
     string message)
     {
-        await _errorLogService.AddErrorAsync(
-            new ErrorLogDto
-            {
-                TransferLogId = transferLogId,
-                RecordId = recordId,
-                ErrorField = field,
-                ErrorMessage = message
-            });
+        errorsToInsert.Add(new ErrorLogDto
+        {
+            Id = Guid.NewGuid(),
+            TransferLogId = transferLogId,
+            RecordId = recordId,
+            ErrorField = field,
+            ErrorMessage = message,
+            CreatedDate = DateTime.UtcNow
+        });
     }
 
     private async Task<bool> ValidateUserAsync(
     ExternalUserDto externalUser,
     Guid transferLogId,
-    HashSet<string> processedEmails)
+    HashSet<string> processedEmails,
+    List<ErrorLogDto> errorsToInsert)
     {
         // FirstName kontrolü
         if (string.IsNullOrWhiteSpace(externalUser.FirstName))
         {
-            await AddErrorAsync(
+            AddError(
+                errorsToInsert,
                 transferLogId,
                 Guid.NewGuid(),
                 "FirstName",
@@ -172,7 +163,8 @@ public class TransferService : ITransferService
         // Email boş mu?
         if (string.IsNullOrWhiteSpace(externalUser.Email))
         {
-            await AddErrorAsync(
+            AddError(
+                errorsToInsert,
                 transferLogId,
                 Guid.NewGuid(),
                 "Email",
@@ -186,7 +178,8 @@ public class TransferService : ITransferService
             externalUser.Email,
             @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
-            await AddErrorAsync(
+            AddError(
+                errorsToInsert,
                 transferLogId,
                 Guid.NewGuid(),
                 "Email",
@@ -198,7 +191,8 @@ public class TransferService : ITransferService
         // Aynı transfer paketinde duplicate email var mı?
         if (processedEmails.Contains(externalUser.Email))
         {
-            await AddErrorAsync(
+            AddError(
+                errorsToInsert,
                 transferLogId,
                 Guid.NewGuid(),
                 "Email",
@@ -213,7 +207,8 @@ public class TransferService : ITransferService
 
         if (existingUser != null)
         {
-            await AddErrorAsync(
+            AddError(
+                errorsToInsert,
                 transferLogId,
                 existingUser.Id,
                 "Email",
@@ -243,38 +238,16 @@ public class TransferService : ITransferService
     }
 
 
-    private async Task UpdateTransferLogAsync(
-    Guid transferLogId,
-    int totalRecords,
-    int successCount,
-    string status)
-    {
-        await _transferLogService.UpdateTransferLogAsync(
-            new TransferLogDto
-            {
-                Id = transferLogId,
-                TransferDate = DateTime.UtcNow,
-                TotalRecords = totalRecords,
-                SuccessCount = successCount,
-                Status = status
-            });
-    }
-
     private async Task<TransferResultDto> ExecuteTransferAsync(
     List<ExternalUserDto> users)
     {
         int successCount = 0;
         int failedCount = 0;
         var usersToInsert = new List<User>();
+        var errorsToInsert = new List<ErrorLogDto>();
         var transferLogId = Guid.NewGuid();
 
         var processedEmails = new HashSet<string>();
-
-        await CreateRunningTransferLogAsync(transferLogId);
-
-        
-        
-        
 
         foreach (var externalUser in users)
         {
@@ -283,7 +256,8 @@ public class TransferService : ITransferService
             if (!await ValidateUserAsync(
                 externalUser,
                 transferLogId,
-                processedEmails))
+                processedEmails,
+                errorsToInsert))
             {
                 failedCount++;
                 continue;
@@ -298,7 +272,8 @@ public class TransferService : ITransferService
 
                 foreach (var error in anomalyResult.Errors)
                 {
-                    await AddErrorAsync(
+                    AddError(
+                        errorsToInsert,
                         transferLogId,
                         recordId,
                         error.Field,
@@ -329,11 +304,23 @@ public class TransferService : ITransferService
 
         var result = CalculateTransferResult(successCount, failedCount);
 
-        await UpdateTransferLogAsync(
-        transferLogId,
-        users.Count,
-        successCount,
-        result.Status);
+        await _transferLogService.BulkInsertTransferLogsAsync(
+            new List<TransferLogDto>
+            {
+                new()
+                {
+                    Id = transferLogId,
+                    TransferDate = DateTime.UtcNow,
+                    TotalRecords = users.Count,
+                    SuccessCount = successCount,
+                    Status = result.Status
+                }
+            });
+
+        if (errorsToInsert.Count > 0)
+        {
+            await _errorLogService.BulkInsertErrorsAsync(errorsToInsert);
+        }
 
         return new TransferResultDto
         {

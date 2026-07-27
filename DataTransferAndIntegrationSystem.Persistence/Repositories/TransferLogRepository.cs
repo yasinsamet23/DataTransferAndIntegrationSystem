@@ -1,5 +1,6 @@
 using DataTransferAndIntegrationSystem.Application.Interfaces;
 using DataTransferAndIntegrationSystem.Domain.Entities;
+using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataTransferAndIntegrationSystem.Persistence.Repositories;
@@ -23,6 +24,14 @@ public class TransferLogRepository : ITransferLogRepository
     public async Task AddAsync(TransferLog transferLog)
     {
         await _context.TransferLogs.AddAsync(transferLog);
+    }
+
+    public async Task BulkInsertAsync(List<TransferLog> transferLogs)
+    {
+        if (transferLogs.Count == 0)
+            return;
+
+        await _context.BulkInsertAsync(transferLogs);
     }
 
     public async Task SaveChangesAsync()
